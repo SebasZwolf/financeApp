@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head
+	th:replace="/fragments/master :: headerfiles( tittle = 'AdminMenu' )">
+</head>
+<body>
+	<div class="container">
+	    <div style="max-width:600px; margin-left: auto; margin-right: auto; margin-top:24px; padding: 24px;">
+	        <div class="card ">
+	            <div class="card-header text-white bg-info" style="display:flex">
+	                <h4 style="flex:1"> Menu</h4>
+	                
+	                <form method="post" th:action="@{/logout}">
+		                <button type="submit" class="btn btn-outline-danger text-white">salir</button>
+	                </form>	                
+	            </div>
+	            <div class="card-block" style="padding: 24px;">
+	            	<form th:action="@{/admin/business/new}" th:object="${negocio}"
+					method="post" enctype="multipart/form-data" id="registerform">
+
+						<div class="col-sm-6">
+							<fieldset>
+								<legend> Profile Info </legend>
+								
+								<label for="fname">Nombre: </label>
+								<input type="text" pattern = "^[a-zA-Z]{3,75}( [a-zA-Z.]{3,75}){0,}?$"
+									name="fname" id="fname" th:field="*{name}" class="form-control"
+									placeholder="ingrese aquí, los nombres" autofocus required /> 
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></small>
+																						
+								<label 
+									for="dni">RUC: </label>
+								<input type="text" pattern = "[0-9]{13}"
+									name="ruc"  id="ruc" th:field="*{ruc}" class="form-control"
+									placeholder="ingrese aquí, el ruc" autofocus required />
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('ruc')}" th:errors="*{ruc}"></small>
+									
+								<label 
+									for="fname">Descripción: </label>
+								<textarea rows="" cols="" 
+									th:field="*{desc}" name="desc" id="desc" class="form-control"
+									placeholder="ingrese una descripción" autofocus></textarea>
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('desc')}" th:errors="desc"></small>
+									
+								<label 
+									for="fname">Director: </label>
+								<input type="text" pattern = "^[a-zA-Z]{3,75}( [a-zA-Z]{3,75}){0,4}?$"
+									name="director" id="director" th:field="*{director}" class="form-control"
+									placeholder="ingrese aquí, los nombres del director" autofocus required /> 
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('director')}" th:errors="*{director}"></small>
+									
+								<label 
+									for="fname">Dirección: </label>
+								<input type="text" pattern="^([a-zA-Z0-9., ]{0,})$"
+									name="address" id="address" th:field="*{address}" class="form-control"
+									placeholder="ingrese aquí, una dirección" autofocus/>
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></small>
+							</fieldset>
+						</div>
+					</form>
+            	</div>
+            	<div class="card-footer">
+    				<div style="width:100%; text-align: right">
+    					<button type="submit" class="btn btn-success" form = "registerform">
+    						guardar
+    					</button>
+    					<a class="btn btn-secondary" th:href = "@{/admin/home}">
+    						atras
+    					</a>
+    				</div>
+  				</div>
+        	</div>
+    	</div>
+	</div>
+	<div th:replace="/fragments/master :: complements"></div>
+</body>
+</html>

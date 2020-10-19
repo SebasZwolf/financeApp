@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head
+	th:replace="/fragments/master :: headerfiles( tittle = 'AdminMenu' )">
+</head>
+<body>
+	<style type="text/css">
+	
+		.btn-cascade{
+			display: inline-block;
+			text-align: center;
+			width: fit-content;
+		}
+		
+		.btn-cascade .cascade-item{
+			width: -webkit-fill-available;
+			display: block;
+			margin-bottom: 4px;
+		}
+	</style>
+	<div class="container">
+	    <div style="max-width:600px; margin-left: auto; margin-right: auto; margin-top:24px; padding: 24px;">
+	        <div class="card ">
+	            <div class="card-header text-white bg-info" style="display:flex">
+	                <h4 style="flex:1"> Menu</h4>
+	                
+	                <form method="post" th:action="@{/logout}">
+		                <button type="submit" class="btn btn-outline-danger text-white">salir</button>
+	                </form>	                
+	            </div>
+	            <div class="card-block" style="padding: 24px;">
+	            
+	            <h6>Please, select one of the following Actions:</h6>
+	            <div style="width:100%; text-align: center;">
+			        <div class = "btn-cascade">
+			        	<a type="button" class="btn btn-primary cascade-item" th:href="@{/admin/client/new}">Register new Client</a>
+			        	<a type="button" class="btn btn-primary cascade-item" th:href="@{/admin/client/list}">View Clients</a>
+			        	<a type="button" class="btn btn-primary cascade-item" th:href="@{/admin/business/new}">Register new Business</a>
+			        	<a type="button" class="btn btn-primary cascade-item" th:href="@{/admin/business/list}">view Business</a>
+			        	<a type="button" class="btn btn-primary cascade-item" th:href="@{/admin/admin/new}">Register new Admin</a>
+		            </div>
+		        </div>
+
+            	</div>
+        	</div>
+    	</div>
+	</div>
+	<div th:replace="/fragments/master :: complements"></div>
+</body>
+</html>

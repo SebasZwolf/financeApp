@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head
+	th:replace="/fragments/master :: headerfiles( tittle = 'AdminMenu' )">
+</head>
+<body>
+	<style type="text/css">
+		.list-cascade{
+			display: block;
+			max-height: 30rem;
+    		overflow-y: auto;
+		}
+		.cascade-item{
+			display: flex;
+			padding: 2% 2% 2% 2%;
+			margin: 0px 0px 2px 0px;
+			
+			border-radius: .25rem;
+			background-color: #bbdddd;
+		}
+		.cascade-item .cascade-item-icon {
+			margin-right: 1rem;
+			margin-bottom: auto;
+		}
+		.cascade-item .cascade-item-body{
+			display: block;
+			flex: 1;
+			margin-bottom: auto;
+			margin-top: auto;
+		}
+		
+		.cascade-item .cascade-item-body a{
+			display: block;
+		}
+		
+		.cascade-item .cascade-item-footer {
+			margin: auto;
+		}
+	</style>
+	<div class="container">
+	    <div style="max-width:600px; margin-left: auto; margin-right: auto; margin-top:24px; padding: 24px;">
+	        <div class="card ">
+	            <div class="card-header text-white bg-info" style="display:flex">
+	                <h4 style="flex:1">Menu</h4>
+	                
+	                <form method="post" th:action="@{/logout}">
+		                <button type="submit" class="btn btn-outline-danger text-white">salir</button>
+	                </form>	                
+	            </div>
+	            <div class="card-block" style="padding: 24px;">
+	            	<div style="width: 100%; text-align: center; margin-bottom: 1rem">
+	            		<a class="btn btn-outline-success" th:href="@{'/admin/client/' + ${id} + '/account/new'}">Abrir Nueva linea</a>
+	            	</div>
+	            
+	            	<div class="list-cascade">
+		            	<div th:each="cuenta: ${listCuenta}" class="cascade-item">
+		            		<a class="btn btn-primary cascade-item-icon" th:text="${cuenta.id}"></a>
+		            		<div class ="cascade-item-body">
+			            		<a class="text-white font-weight-bold" th:text="'Limite:'+${cuenta.limit}"></a>
+		            			<a class="text-white" th:text="'Inicio:'+${cuenta.start}"></a>
+		            			<a class="text-white" th:text="'End:'+${cuenta.end}"></a>
+		            		</div>
+		            		<a class="badge badge-info cascade-item-footer" th:if="${!cuenta.open}">renovated</a>
+		            	</div>
+	            	</div>
+            	</div>
+            	<div class="card-footer">
+    				<div style="width:100%; text-align: right">
+     					<a class="btn btn-secondary" th:href = "@{/admin/client/list}">
+    						atras
+    					</a>
+    				</div>
+  				</div>
+        	</div>
+    	</div>
+	</div>
+	<div th:replace="/fragments/master :: complements"></div>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head
+	th:replace="/fragments/master :: headerfiles( tittle = 'AdminMenu' )">
+</head>
+<body>
+	<div class="container">
+	    <div style="max-width:600px; margin-left: auto; margin-right: auto; margin-top:24px; padding: 24px;">
+	        <div class="card ">
+	            <div class="card-header text-white bg-info" style="display:flex">
+	                <h4 style="flex:1"> Menu</h4>
+	                
+	                <form method="post" th:action="@{/logout}">
+		                <button type="submit" class="btn btn-outline-danger text-white">salir</button>
+	                </form>	                
+	            </div>
+	            <div class="card-block" style="padding: 24px;">
+	            	<form th:action="@{/admin/client/new}" th:object="${cliente}"
+					method="post" enctype="multipart/form-data" id="registerform">
+
+						<div class="col-sm-6">
+							<fieldset>
+								<legend> Profile Info </legend>
+								
+								<label for="fname">First Name: </label>
+								<input type="text" pattern = "^[a-zA-ZÀ-ÿ]{2,75}( [a-zA-ZÀ-ÿ]{1,75}){0,2}?$"
+									name="fname" id="fname" th:field="*{name}" class="form-control"
+									placeholder="ingrese aquí, los nombres" autofocus required /> 
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></small>
+								
+								<label
+									for="lname">Last Name: </label>	
+								<input type="text" pattern = "^[a-zA-ZÀ-ÿ]{2,75}( [a-zA-ZÀ-ÿ]{1,75}){1}?$"
+									 name="lname" id="lname" th:field="*{lname}" class="form-control"
+									placeholder="ingrese aquí, los apellidos" autofocus required />
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('lname')}" th:errors="*{lname}"></small>
+																
+								<label 
+									for="business">Negocio:</label>
+								<select class="form-control" th:field="*{business}">
+									<option selected value="0"></option>
+									<option
+										th:each="b: ${listNegocio}" th:value="${b.Id}"
+										th:text="${b.name}"
+										th:selected="(${b} == *{business})">
+									</option>
+								</select>		
+								<label 
+									for="dni">DNI: </label>
+								<input type="text" pattern = "[0-9]{8}"
+									name="dni"  id="dni" th:field="*{dni}" class="form-control"
+									placeholder="ingrese aquí, el dni" autofocus required />
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('dni')}" th:errors="*{dni}"></small>
+									
+								<label
+									for="telf">Telefono: </label>
+								<input type="text" pattern = "[0-9]{9}"
+									name="telf"  id="telf" th:field="*{telf}" class="form-control"
+									placeholder="ingrese aquí, el telefono" autofocus required />
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('telf')}" th:errors="*{telf}"></small>
+							</fieldset>
+						</div>
+						
+						<div class="col-sm-6">
+							<fieldset>
+								<legend> User Config </legend>
+								<label for="username">Username: </label> 
+								<input type="text" pattern="^[a-zA-Z0-9]{5,30}$" 
+									name="username" id="username" th:field="*{account.uname}"
+									class="form-control" placeholder="usuario" autofocus required />
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('account.uname')}" th:errors="*{account.uname}"></small>
+							</fieldset>
+						</div>
+					</form>
+            	</div>
+            	<div class="card-footer">
+    				<div style="width:100%; text-align: right">
+    					<button type="submit" class="btn btn-success" form = "registerform">
+    						guardar
+    					</button>
+    					<a class="btn btn-secondary" th:href = "@{/admin/home}">
+    						atras
+    					</a>
+    				</div>
+  				</div>
+        	</div>
+    	</div>
+	</div>
+	<div th:replace="/fragments/master :: complements"></div>
+</body>
+</html>

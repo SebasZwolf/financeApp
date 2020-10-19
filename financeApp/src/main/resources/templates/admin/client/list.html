@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head
+	th:replace="/fragments/master :: headerfiles( tittle = 'AdminMenu' )">
+</head>
+<body>
+	<style type="text/css">
+		.list-cascade{
+			display: block;
+			max-height: 30rem;
+    		overflow-y: auto;
+		}
+		.cascade-item{
+			display: flex;
+			padding: 2% 2% 2% 2%;
+			margin: 0px 0px 2px 0px;
+			
+			border-radius: .25rem;
+			background-color: #bbdddd;
+		}
+		.cascade-item .cascade-item-icon {
+			margin-right: 1rem;
+		}
+		.cascade-item .cascade-item-body{
+			flex: 1;
+			margin-bottom: auto;
+			margin-top: auto;
+		}
+		.cascade-item .cascade-item-footer {
+			margin: auto;
+		}
+	</style>
+	<div class="container">
+	    <div style="max-width:600px; margin-left: auto; margin-right: auto; margin-top:24px; padding: 24px;">
+	        <div class="card ">
+	            <div class="card-header text-white bg-info" style="display:flex">
+	                <h4 style="flex:1">Menu</h4>
+	                
+	                <form method="post" th:action="@{/logout}">
+		                <button type="submit" class="btn btn-outline-danger text-white">salir</button>
+	                </form>	                
+	            </div>
+	            <div class="card-block" style="padding: 24px;">
+	            	<div class="list-cascade">
+		            	<div th:each="client: ${listClientes}" class="cascade-item">
+		            		<a th:if="${!client.isadmin}" class="btn btn-primary cascade-item-icon" th:text="${client.id}" th:href="@{'/admin/client/' + ${client.id} + '/account/list'}"></a>
+		            		<a th:if="${client.isadmin}" class="btn btn-primary cascade-item-icon" th:text="${client.id}"></a>
+		            		
+		            		<a class="text-white font-weight-bold cascade-item-body" th:text="${client.uname}"></a>
+		            		<a class="badge badge-warning cascade-item-footer" th:if="${client.isadmin}">admin</a>
+		            	</div>
+	            	</div>
+            	</div>
+            	<div class="card-footer">
+    				<div style="width:100%; text-align: right">
+     					<a class="btn btn-secondary" th:href = "@{/admin/home}">
+    						atras
+    					</a>
+    				</div>
+  				</div>
+        	</div>
+    	</div>
+	</div>
+	<div th:replace="/fragments/master :: complements"></div>
+</body>
+</html>

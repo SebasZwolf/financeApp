@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head
+	th:replace="/fragments/master :: headerfiles( tittle = 'AdminMenu' )">
+</head>
+<body>
+	<div class="container">
+	    <div style="max-width:600px; margin-left: auto; margin-right: auto; margin-top:24px; padding: 24px;">
+	        <div class="card ">
+	            <div class="card-header text-white bg-info" style="display:flex">
+	                <h4 style="flex:1"> Menu</h4>
+	                
+	                <form method="post" th:action="@{/logout}">
+		                <button type="submit" class="btn btn-outline-danger text-white">salir</button>
+	                </form>	                
+	            </div>
+	            <div class="card-block" style="padding: 24px;">
+	            	<form th:action="@{/admin/admin/new}" th:object="${usuario}"
+					method="post" enctype="multipart/form-data" id="registerform">
+						<div class="col-sm-6">
+							<fieldset>
+								<legend> User Config </legend>
+								<label for="username">Username: </label> 
+								<input type="text" pattern="^[a-zA-Z0-9]{5,30}$" 
+									name="username" id="username" th:field="*{uname}"
+									class="form-control" placeholder="usuario" autofocus required />
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('uname')}" th:errors="*{uname}"></small>
+									
+								<label for="username">Password: </label> 
+								<input type="password" pattern="^[a-zA-Z0-9]{5,30}$" 
+									name="password" id="password" th:field="*{upass}"
+									class="form-control" placeholder="contraseña" autofocus required />
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('upass')}" th:errors="*{upass}"></small>
+									
+								<label for="username">Confirm Password: </label> 
+								<input type="password" pattern="^[a-zA-Z0-9]{5,30}$" 
+									name="rpass" id="rpass"
+									class="form-control" placeholder="repita contraseña" autofocus required />
+								<small class="form-text text-danger" id="rpassMsg"></small>
+							</fieldset>
+							<script type="text/javascript">
+								var tagPass = document.getElementById("password"),
+									tagRpass = document.getElementById("rpass");
+								
+								function validatePass(){
+									if(tagPass.value != tagRpass.value){										
+										tagRpass.setCustomValidity("Contraseñas Diferentes!");
+									}else{
+										tagRpass.setCustomValidity('');
+									}
+								}
+								
+								tagRpass.onchange = validatePass;
+								tagPass.onchange = validatePass;
+							</script>
+						</div>
+					</form>
+            	</div>
+            	<div class="card-footer">
+    				<div style="width:100%; text-align: right">
+    					<button type="submit" class="btn btn-success" form = "registerform">
+    						guardar
+    					</button>
+    					<a class="btn btn-secondary" th:href = "@{/admin/home}">
+    						atras
+    					</a>
+    				</div>
+  				</div>
+        	</div>
+    	</div>
+	</div>
+	<div th:replace="/fragments/master :: complements"></div>
+</body>
+</html>

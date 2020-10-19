@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
+    <title>Login Page</title>
+  </head>
+  <body>
+	  <div class="container">
+	    <div style="width:600px;margin-left: auto;margin-right: auto;margin-top:24px;padding: 24px;">
+	        <div class="card">
+	            <div class="card-header">
+	                <i class="fa fa-user"></i> Please Activate your account by changin your password
+	            </div>
+	            <div class="card-block" style="padding: 24px;">
+	                <form th:action="@{'/client/' + ${id} +'/activate'}"
+					method="post" enctype="multipart/form-data" id="registerform">
+						<div class="col-sm-6">
+							<fieldset>
+								<legend> Password Activation </legend>								
+								<label for="password">Password: </label> 
+								<input type="password" pattern="^[a-zA-Z0-9]{5,30}$" 
+									name="password" id="password"
+									class="form-control" placeholder="contraseña" autofocus required />
+									
+								<label for="rpass">Confirm Password: </label> 
+								<input type="password" pattern="^[a-zA-Z0-9]{0,}$" tittle="caracteres permitidos: a-z A-Z 0-9"
+									name="rpass" id="rpass"
+									class="form-control" placeholder="repita contraseña" autofocus required />
+								<small class="form-text text-danger" id="rpassMsg"></small>
+							</fieldset>
+							<script type="text/javascript">
+								var tagPass = document.getElementById("password"),
+									tagRpass = document.getElementById("rpass");
+								
+								function validatePass(){
+									tagPass.setCustomValidity('');	
+									tagRpass.setCustomValidity('');
+									
+									if(tagPass.value.length < 5 || tagPass.value.length > 30 ){										
+										tagPass.setCustomValidity("requiere minimo 5 caracteres y maximo 30!");
+									}
+									
+									if(tagPass.value == "claro2018"){										
+										tagPass.setCustomValidity("Debe ingresar una nueva contraseña!");
+									}
+									
+									if(tagPass.value != tagRpass.value){										
+										tagRpass.setCustomValidity("Contraseñas Diferentes!");
+									}
+								}
+								
+								tagRpass.onchange = validatePass;
+								tagPass.onchange = validatePass;
+							</script>
+						</div>
+					</form>
+            	</div>
+            	<div class="card-footer">
+    				<div style="width:100%; text-align: right">
+    					<button type="submit" class="btn btn-success" form = "registerform">
+    						guardar
+    					</button>
+    				</div>
+  				</div>
+        	</div>
+    	</div>
+	</div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+  </body>
+</html>
