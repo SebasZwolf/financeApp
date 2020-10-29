@@ -10,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 //import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +22,7 @@ import org.thymeleaf.util.DateUtils;
 import pe.edu.upc.entity.Cliente;
 import pe.edu.upc.entity.Cuenta;
 import pe.edu.upc.entity.DetalleCuenta;
+import pe.edu.upc.entity.Moneda;
 import pe.edu.upc.entity.Negocio;
 import pe.edu.upc.entity.Usuario;
 import pe.edu.upc.iservice.IClienteService;
@@ -159,6 +161,10 @@ public class AdminController {
 		if(result.hasErrors()) {
 			model.addAttribute("usuario", user);
 			
+			for(ObjectError err : result.getAllErrors()){
+				System.out.println(err.getDefaultMessage());
+			}
+			
 			return "/admin/admin/new";
 		}
 						
@@ -179,13 +185,21 @@ public class AdminController {
 	}
 
 	@PostMapping("/client/{id}/account/new")
-	public String RegisterAccount(@Valid Cuenta cuenta, BindingResult result, Model model, @PathVariable(name="id") int id, @RequestParam(name="length") int length) {
+	public String RegisterAccount(@Valid Cuenta cuenta, BindingResult result, Model model, @PathVariable(name="id") int id, @RequestParam(name="length") int length, @RequestParam(name="mon") int moneda) {
 		if(result.hasErrors()) {
 			model.addAttribute("id", id);
 			model.addAttribute("cuenta", cuenta);
 			
-			return "/admin/client/new";
+			for(ObjectError err : result.getAllErrors()){
+				System.out.println(err.getDefaultMessage());
+			}
+			
+			return "/admin/client/account/new";
 		}
+		
+		cuenta.setMoneda(Moneda.values()[moneda]);
+		
+		cuenta.setBalance(cuenta.getLimit());
 		
 		cuenta.setOwner(cS.findById(id).get());
 		

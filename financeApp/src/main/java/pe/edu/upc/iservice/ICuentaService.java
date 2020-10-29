@@ -8,6 +8,8 @@ import pe.edu.upc.entity.Cuenta;
 public interface ICuentaService {
 	List<Cuenta> list();
 	
+	Optional<Cuenta> findById(int id);
+	
 	int insert(Cuenta user);
 	int delete(int id);
 }

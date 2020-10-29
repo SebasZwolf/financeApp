@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head
-	th:replace="/fragments/master :: headerfiles( tittle = 'AdminMenu' )">
+	th:replace="/fragments/master :: headerfiles( tittle = 'ClientMenu' )">
 </head>
 <body>
-	<style type="text/css">
+		<style type="text/css">
 		.list-cascade{
 			display: block;
 			max-height: 30rem;
@@ -36,40 +36,46 @@
 		.cascade-item .cascade-item-footer {
 			margin: auto;
 		}
+		.stats tr{
+			margin-bottom: 2px;
+			vertical-align: bottom;
+			height: 42px;
+		}
 	</style>
 	<div class="container">
 	    <div style="max-width:600px; margin-left: auto; margin-right: auto; margin-top:24px; padding: 24px;">
 	        <div class="card ">
 	            <div class="card-header text-white bg-info" style="display:flex">
-	                <h4 style="flex:1">Menu</h4>
+	                <h4 style="flex:1"> Menu</h4>
 	                
 	                <form method="post" th:action="@{/logout}">
 		                <button type="submit" class="btn btn-outline-danger text-white">salir</button>
 	                </form>	                
 	            </div>
 	            <div class="card-block" style="padding: 24px;">
-	            	<div style="width: 100%; text-align: center; margin-bottom: 1rem">
-	            		<a class="btn btn-outline-success" th:href="@{'/admin/client/' + ${id} + '/account/new'}">Abrir Nueva linea</a>
-	            	</div>
-	            
-	            	<div class="list-cascade">
-		            	<div th:each="cuenta: ${listCuenta}" class="cascade-item">
-		            		<a class="btn btn-primary cascade-item-icon" th:text="${cuenta.id}"></a>
-		            		<div class ="cascade-item-body">
-			            		<a class="text-white font-weight-bold" th:text="'Balance: '+${cuenta.balance}+'/'+${cuenta.limit}"></a>
-		            			<a class="text-white" th:text="'Inicio:'+${cuenta.start}"></a>
-		            			<a class="text-white" th:text="'End:'+${cuenta.end}"></a>
-		            		</div>
-		            		<div class="cascade-item-footer">
-			            		<a class="badge badge-info" th:if="${!cuenta.open}">renovated</a>
-			            		<a class="badge badge-light" th:text="${cuenta.moneda}"></a>
-		            		</div>
-		            	</div>
-	            	</div>
-            	</div>
-            	<div class="card-footer">
+	            	<table class="table table-striped">
+						<thead class="thead-dark">
+							<tr>
+								<th scope="col">Pago</th>
+								<th scope="col">Fecha</th>
+								<th scope="col">Valor</th>
+							</tr>
+						</thead>
+						<tbody id="myTable">
+							<tr th:each="row: ${listPayments}">
+								<td th:text="${row[0]}"></td>
+								<td th:text="${row[1]}"></td>
+								<td th:text="${row[2]}"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+                <div class="card-footer">
     				<div style="width:100%; text-align: right">
-     					<a class="btn btn-secondary" th:href = "@{/admin/client/list}">
+    					<button type="submit" class="btn btn-success" form = "registerform">
+    						guardar
+    					</button>
+     					<a class="btn btn-secondary" th:href = "@{'/client/account/'+${account_id}+'/detail'}">
     						atras
     					</a>
     				</div>

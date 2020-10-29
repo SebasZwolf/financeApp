@@ -1,6 +1,7 @@
 package pe.edu.upc.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,11 @@ public class CuentaService implements ICuentaService {
 			return 0;
 		}
 		return 1;
+	}
+
+	@Override
+	public Optional<Cuenta> findById(int id) {
+		return cR.findById(id);
 	}
 
 }

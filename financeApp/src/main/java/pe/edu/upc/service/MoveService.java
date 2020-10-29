@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import pe.edu.upc.entity.Cuenta;
 import pe.edu.upc.entity.Move;
 import pe.edu.upc.iservice.IMoveService;
 import pe.edu.upc.repository.MoveRepository;
@@ -18,8 +19,8 @@ public class MoveService implements IMoveService {
 	private MoveRepository mR;
 	
 	@Override
-	public List<Move> list(Date date) {
-		return mR.findAll();
+	public List<Move> list(Cuenta cuenta) {
+		return mR.fetchFrom(cuenta.getId(), cuenta.getStart());
 	}
 
 	@Override
@@ -40,6 +41,11 @@ public class MoveService implements IMoveService {
 			return 0;
 		}
 		return 1;
+	}
+
+	@Override
+	public Optional<Move> getLast(Cuenta account) {
+		return mR.getLast(account.getId());
 	}
 
 }

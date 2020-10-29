@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head
+	th:replace="/fragments/master :: headerfiles( tittle = 'ClientMenu' )">
+</head>
+<body>
+		<style type="text/css">
+		.list-cascade{
+			display: block;
+			max-height: 30rem;
+    		overflow-y: auto;
+		}
+		.cascade-item{
+			display: flex;
+			padding: 2% 2% 2% 2%;
+			margin: 0px 0px 2px 0px;
+			
+			border-radius: .25rem;
+			background-color: #bbdddd;
+		}
+		.cascade-item .cascade-item-icon {
+			margin-right: 1rem;
+			margin-bottom: auto;
+		}
+		.cascade-item .cascade-item-body{
+			display: block;
+			flex: 1;
+			margin-bottom: auto;
+			margin-top: auto;
+		}
+		
+		.cascade-item .cascade-item-body a{
+			display: block;
+		}
+		
+		.cascade-item .cascade-item-footer {
+			margin: auto;
+		}
+		.stats tr{
+			margin-bottom: 2px;
+			vertical-align: bottom;
+			height: 42px;
+		}
+	</style>
+	<div class="container">
+	    <div style="max-width:600px; margin-left: auto; margin-right: auto; margin-top:24px; padding: 24px;">
+	        <div class="card ">
+	            <div class="card-header text-white bg-info" style="display:flex">
+	                <h4 style="flex:1"> Menu</h4>
+	                
+	                <form method="post" th:action="@{/logout}">
+		                <button type="submit" class="btn btn-outline-danger text-white">salir</button>
+	                </form>	                
+	            </div>
+	            <div class="card-block" style="padding: 24px;">
+	            <form th:action="@{'/client/account/'+${account_id}+'/move/new'}" th:object ="${move}"
+					method="post" enctype="multipart/form-data" id="registerform">
+		            <div class="col-sm-6">
+		            	<label for="value">Value: </label>
+						<input type="number" step="0.01"
+							name="value" id="value" th:field="*{value}" class="form-control" value= "0" autofocus required /> 
+						<small class="form-text text-danger"
+							th:if="${#fields.hasErrors('value')}" th:errors="*{value}"></small>
+		            	
+		            	<label
+							for="commit_date">Commit Date: </label>	
+						<input type="date"
+							name="commit_date" th:field="*{commit_date}" class="form-control"
+							autofocus readonly/>
+		            </div>
+				</form>
+	            </div>
+	            
+	            <script type="text/javascript">
+	            	var tagValue = document.getElementById("value");
+	            	
+					function validateVal(){
+						tagValue.setCustomValidity('')
+						
+						if( Math.abs(parseInt(tagValue.value)) < 1){										
+							tagValue.setCustomValidity("El valor absoluto debe ser mayor o igual a 1");
+						}
+					}
+					
+					tagValue.onchange = validateVal;
+					validateVal();
+	            </script>
+	            
+                <div class="card-footer">
+    				<div style="width:100%; text-align: right">
+    					<button type="submit" class="btn btn-success" form = "registerform">
+    						guardar
+    					</button>
+     					<a class="btn btn-secondary" th:href = "@{'/client/account/'+${account_id}+'/detail'}">
+    						atras
+    					</a>
+    				</div>
+  				</div>
+        	</div>
+    	</div>
+	</div>
+	<div th:replace="/fragments/master :: complements"></div>
+</body>
+</html>

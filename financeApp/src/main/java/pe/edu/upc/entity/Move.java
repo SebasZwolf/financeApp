@@ -29,7 +29,7 @@ public class Move {
 	@Column(name = "commit_date", nullable = false)
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	@Temporal(TemporalType.DATE)
-	private Date commit_date;
+	private Date commit_date = new Date();
 
 	@ManyToOne
 	@JoinColumn(nullable = false, name = "move_bank_account")
@@ -38,34 +38,25 @@ public class Move {
 	public int getId() {
 		return Id;
 	}
-
 	public void setId(int id) {
 		Id = id;
 	}
-
 	public double getValue() {
 		return value;
 	}
-
 	public void setValue(double value) {
 		this.value = value;
 	}
-
 	public Date getCommit_date() {
 		return commit_date;
 	}
-
 	public void setCommit_date(Date commit_date) {
 		this.commit_date = commit_date;
 	}
-
 	public Cuenta getAccount() {
 		return account;
 	}
-
 	public void setAccount(Cuenta account) {
 		this.account = account;
 	}	
-	
-	
 }

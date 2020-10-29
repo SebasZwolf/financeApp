@@ -52,81 +52,115 @@
 		                <button type="submit" class="btn btn-outline-danger text-white">salir</button>
 	                </form>	                
 	            </div>
-	            <div class="card-block" style="padding: 24px;" th:object="${cliente}">
+	            <div class="card-block" style="padding: 24px;" th:object="${cuenta}">
 		            <div class="text-white" style="margin: auto; width:80%; margin-bottom: 4px; background-color: #888888; border-radius: .25rem; border-color: #333333; border-width: 2px; border-style: solid; padding: 1.5% 1.5%">
-						<table class="stats" style="width:100%">
+						<table class="stats" style="width:100%" th:object="${cuenta.detail}">
 						<tr style="display:none">
 						    <th style="width: 30%; margin-bottom: 2px;"></th>
 						    <th style="width: 70%; margin-bottom: 2px;"></th>
 					  	</tr>
 						<tr>
 							<td>
-								<label for="fname">First Name: </label>
+								<label for="fname">Com. Apertura(%): </label>
 							</td>
 							<td>					
-								<input type="text" th:value="*{name}" class="form-control" readonly disabled /> 
+								<input type="text" th:value="*{comApertura}" class="form-control" readonly disabled /> 
 							</td>
 						</tr>
 						<tr>	
 							<td>
-								<label for="lname">Last Name: </label>	
+								<label for="lname">Com. Renovación(%): </label>	
 							</td>
 							<td>					
-								<input type="text" th:value ="*{lname}" class="form-control" readonly disabled/>
+								<input type="text" th:value ="*{comRenovar}" class="form-control" readonly disabled/>
 							</td>
 						</tr>
 						<tr>	
 							<td>
-								<label for="business">Negocio:</label>
+								<label for="business">Com. Mantenimiento:</label>
 							</td>
 							<td>					
-								<input th:if="*{business != null}" type="text" th:value ="*{business.name}" class="form-control" readonly disabled/>	
-								<input th:if="*{business == null}" type="text" class="form-control" readonly disabled value=""/>
+								<input type="text" th:value ="*{comMantenimiento}" class="form-control" readonly disabled/>
 							</td>
 						</tr>
 						<tr>	
 							<td>
-								<label for="dni">DNI: </label>
+								<label for="dni">Com. Disponibildad(%): </label>
 							</td>
 							<td>					
-								<input type="text" th:value ="*{dni}" class="form-control" readonly disabled/>
+								<input type="text" th:value ="*{comDisponibildiad}+' '+${cuenta.moneda}" class="form-control" readonly disabled/>
 							</td>
 						</tr>
 						<tr>	
-							<td>
-								<label for="telf">Telefono: </label>
+							<td rowspan="3" style="vertical-align: middle">
+								<label for="telf">Intereses(TNA): </label>
 							</td>
 							<td>					
-								<input type="text" th:value ="*{telf}" class="form-control" readonly disabled/> 
+								<input type="text" th:value ="'Deudor: '+*{intDeudor}" class="form-control" readonly disabled/>
+							</td>
+						</tr>
+						<tr>
+							<td>					
+								<input type="text" th:value ="'Exedente: '+*{intExcedente}" class="form-control" readonly disabled/>
+							</td>
+						</tr>
+						<tr>
+							<td>					
+								<input type="text" th:value ="'Acreedor: '+*{intAcreedor}" class="form-control" readonly disabled/>
 							</td>
 						</tr>
 						</table>	
 		            </div>
 					<hr>
+					<div style="width: 100%; text-align: center; margin-bottom: 1rem">
+						<a class="btn btn-info" th:href="@{'/client/account/'+${cuenta.id}+'/move/detail'}">Ver Pagos</a>
+	            		<a class="btn btn-outline-info" th:href="@{'/client/account/'+${cuenta.id}+'/move/new'}">Hacer un Movimiento</a>
+	            	</div>
 					<script type="text/javascript">
 						var count = 0;
+						/*<![CDATA[*/
+						var balance = [[${cuenta.limit}]];
+						/*]]>*/
 					</script>
    	            	<div class="list-cascade">
-		            	<div th:each="cuenta: *{cuentas}" class="cascade-item">
-		            		<a class="btn btn-primary cascade-item-icon" th:href="@{'/client/account/'+${cuenta.id}+'/detail'}">
+		            	<div th:each="move: ${moveList}" class="cascade-item">
+		            		<a class="btn btn-primary cascade-item-icon">
 			            		<script>
 									var me = document.currentScript;
 									count+=1;
+									
+									/*<![CDATA[*/
+									balance += [[${move.value}]];
+									/*]]>*/ 
+									
 									me.parentElement.innerHTML=count;
 								</script>
 		            		</a>
 		            		<div class ="cascade-item-body">
-			            		<a class="text-white font-weight-bold" th:text="'Balance: '+${cuenta.balance}+'/'+${cuenta.limit}"></a>
-		            			<a class="text-white" th:text="'Inicio:'+${cuenta.start}"></a>
-		            			<a class="text-white" th:text="'End:'+${cuenta.end}"></a>
+		            			<a class="text-white" th:text="'Value: '+${move.value}"></a>
 		            		</div>
 		            		<div class="cascade-item-footer">
-			            		<a class="badge badge-info" th:if="${!cuenta.open}">renovated</a>
-			            		<a class="badge badge-light" th:text="${cuenta.moneda}"></a>
+			            		<a class="badge badge-light" th:text="${move.commit_date}"></a>
 		            		</div>
 		            	</div>
 	            	</div>
+	            	<div style="width:100%; height: 40px; border-radius: .25rem; border-style: solid; border-width: 1px; border-color: #bbddddd; background-color: transparent; text-align: center;">
+	            		<a class="badge badge-secondary">
+		        			<script type="text/javascript">
+		        				var me = document.currentScript;
+		        				
+		        				me.parentElement.innerHTML= 'saldo: ' + balance;
+		        			</script>
+	            		</a>
+	            	</div>
             	</div>
+            	<div class="card-footer">
+    				<div style="width:100%; text-align: right">
+     					<a class="btn btn-secondary" th:href = "@{/client/home}">
+    						atras
+    					</a>
+    				</div>
+  				</div>
         	</div>
     	</div>
 	</div>

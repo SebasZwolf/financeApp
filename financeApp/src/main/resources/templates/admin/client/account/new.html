@@ -40,6 +40,25 @@
 								<input type="number"
 									 name="length" id="length" min="1" step="1" class="form-control"
 									autofocus required />
+									
+								<label
+									for="start">Payment Periods: </label>	
+								<input type="number"
+									 th:field="*{periods}" class="form-control"
+									autofocus required />
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('periods')}" th:errors="*{periods}"></small>
+								
+								<input type="hidden" th:value="*{moneda}"/>
+								
+								<label
+									for="moneda">Moneda: </label>
+								<select class="form-control" name="mon">
+									<option th:each ="mon : ${T(pe.edu.upc.entity.Moneda).values()}"
+										th:value="${mon.ordinal()}" th:text="${mon}"></option>
+								</select>
+								
+
 							</fieldset>
 						</div>
 						
