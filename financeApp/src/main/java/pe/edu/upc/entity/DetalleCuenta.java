@@ -18,12 +18,6 @@ public class DetalleCuenta {
 	@MapsId
 	private Cuenta BankAccount;
 	
-	@Column(name="comision_apertura", precision = 5, scale = 4)
-	private float comApertura;
-	@Column(name="comision_renovacion", precision = 5, scale = 4)
-	private float comRenovar;
-	@Column(name="comision_saldo_medio_disponible", precision = 5, scale = 4)
-	private float comDisponibildiad;
 	@Column(name="comision_mantenimiento", precision = 5, scale = 2)
 	private float comMantenimiento;
 	
@@ -31,26 +25,7 @@ public class DetalleCuenta {
 	private float intDeudor;
 	@Column(name="interez_excedido", precision = 5, scale = 4)
 	private float intExcedente;
-	@Column(name="interez_acreedor", precision = 5, scale = 4)
-	private float intAcreedor;
-	public float getComApertura() {
-		return comApertura;
-	}
-	public void setComApertura(float comApertura) {
-		this.comApertura = comApertura;
-	}
-	public float getComRenovar() {
-		return comRenovar;
-	}
-	public void setComRenovar(float comRenovar) {
-		this.comRenovar = comRenovar;
-	}
-	public float getComDisponibildiad() {
-		return comDisponibildiad;
-	}
-	public void setComDisponibildiad(float comDisponibildiad) {
-		this.comDisponibildiad = comDisponibildiad;
-	}
+	
 	public float getComMantenimiento() {
 		return comMantenimiento;
 	}
@@ -68,12 +43,6 @@ public class DetalleCuenta {
 	}
 	public void setIntExcedente(float intExcedente) {
 		this.intExcedente = intExcedente;
-	}
-	public float getIntAcreedor() {
-		return intAcreedor;
-	}
-	public void setIntAcreedor(float intAcreedor) {
-		this.intAcreedor = intAcreedor;
 	}
 	public int getId() {
 		return Id;

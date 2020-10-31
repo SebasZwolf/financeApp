@@ -5,17 +5,36 @@
 </head>
 <body>
 	<style type="text/css">
-	
-		.btn-cascade{
-			display: inline-block;
-			text-align: center;
-			width: fit-content;
+		.list-cascade{
+			display: block;
+			max-height: 30rem;
+    		overflow-y: auto;
+		}
+		.cascade-item{
+			display: flex;
+			padding: 2% 2% 2% 2%;
+			margin: 0px 0px 2px 0px;
+			
+			border-radius: .25rem;
+			background-color: #bbdddd;
+		}
+		.cascade-item .cascade-item-icon {
+			margin-right: 1rem;
+			margin-bottom: auto;
+		}
+		.cascade-item .cascade-item-body{
+			display: block;
+			flex: 1;
+			margin-bottom: auto;
+			margin-top: auto;
 		}
 		
-		.btn-cascade .cascade-item{
-			width: -webkit-fill-available;
+		.cascade-item .cascade-item-body a{
 			display: block;
-			margin-bottom: 4px;
+		}
+		
+		.cascade-item .cascade-item-footer {
+			margin: auto;
 		}
 	</style>
 	<div class="container">
@@ -29,18 +48,53 @@
 	                </form>	                
 	            </div>
 	            <div class="card-block" style="padding: 24px;">
-	            
-	            <h6>Please, select one of the following Actions:</h6>
-	            <div style="width:100%; text-align: center;">
-			        <div class = "btn-cascade">
-			        	<a type="button" class="btn btn-primary cascade-item" th:href="@{/admin/client/new}">Register new Client</a>
-			        	<a type="button" class="btn btn-primary cascade-item" th:href="@{/admin/client/list}">View Clients</a>
-			        	<a type="button" class="btn btn-primary cascade-item" th:href="@{/admin/business/new}">Register new Business</a>
-			        	<a type="button" class="btn btn-primary cascade-item" th:href="@{/admin/business/list}">view Business</a>
-			        	<a type="button" class="btn btn-primary cascade-item" th:href="@{/admin/admin/new}">Register new Admin</a>
-		            </div>
-		        </div>
+	            	<div style="width: 100%; text-align: center; margin-bottom: 1rem">
+	            		<a class="btn btn-outline-success" th:href="@{'/admin/cuenta/new'}">Nuevo Cliente</a>
+	            	</div>
+					<script type="text/javascript">
+						var count = 0;
+					</script>
+   	            	<div class="list-cascade">
+		            	<div th:each="cuenta: ${listCuentas}" class="cascade-item">
+		            		<a class="btn btn-primary cascade-item-icon" th:href="@{'/admin/cuenta/'+${cuenta.id}}">
+			            		<script>
+									var me = document.currentScript;
+									count+=1;
+									me.parentElement.innerHTML=count;
+								</script>
+		            		</a>
+		            		<div class ="cascade-item-body">
+			            		<a class="text-white font-weight-bold" th:text="${cuenta.owner.name}+' '+${cuenta.owner.lname}"></a>
+		            			<a class="text-white" th:text="'inicio el: '+${cuenta.start}"></a>
+		            			<a class="text-white" th:text="'estado actual: '+${cuenta.balance}+'/'+${cuenta.maxvalue}"></a>
+		            		</div>
+		            		<div class="cascade-item-footer">
+		            			<div style = "display: inline-block;border-radius: 50%; width: .75rem; height: .75rem;">
+		            				<script type="text/javascript">
+		            					var me = document.currentScript;
+		            					
+		        						/*<![CDATA[*/
+		        						var val = [[${cuenta.balance}]];
+		        						val = val / [[${cuenta.maxvalue}]];
+		        						/*]]>*/
+		        						
+		        						if(val == 1)
+			        						me.parentElement.style.backgroundColor = "#2222dd";
+		        						else if(val > .75)
+			        						me.parentElement.style.backgroundColor = "#22dd22";
+		        						else if(val > .25)
+			        						me.parentElement.style.backgroundColor = "#ffff44";
+		        						else 
+			        						me.parentElement.style.backgroundColor = "#dd2222";
+		        						
 
+		        						me.parentElement.innerHTML = "";
+		            				</script>
+		            			</div>
+			            		<a class="badge badge-light" th:text="${cuenta.moneda}"></a>
+		            		</div>
+		            	</div>
+	            	</div>
             	</div>
         	</div>
     	</div>

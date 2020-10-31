@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head
+	th:replace="/fragments/master :: headerfiles( tittle = 'ClientMenu' )">
+</head>
+<body>
+		<style type="text/css">
+		.list-cascade{
+			display: block;
+			max-height: 30rem;
+    		overflow-y: auto;
+		}
+		.cascade-item{
+			display: flex;
+			padding: 2% 2% 2% 2%;
+			margin: 0px 0px 2px 0px;
+			
+			border-radius: .25rem;
+			background-color: #bbdddd;
+		}
+		.cascade-item .cascade-item-icon {
+			margin-right: 1rem;
+			margin-bottom: auto;
+		}
+		.cascade-item .cascade-item-body{
+			display: block;
+			flex: 1;
+			margin-bottom: auto;
+			margin-top: auto;
+		}
+		
+		.cascade-item .cascade-item-body a{
+			display: block;
+		}
+		
+		.cascade-item .cascade-item-footer {
+			margin: auto;
+		}
+		.stats tr{
+			margin-bottom: 2px;
+			vertical-align: bottom;
+			height: 42px;
+		}
+	</style>
+	<div class="container">
+	    <div style="max-width:600px; margin-left: auto; margin-right: auto; margin-top:24px; padding: 24px;">
+	        <div class="card ">
+	            <div class="card-header text-white bg-info" style="display:flex">
+	                <h4 style="flex:1"> Menu</h4>
+	                
+	                <form method="post" th:action="@{/logout}">
+		                <button type="submit" class="btn btn-outline-danger text-white">salir</button>
+	                </form>	                
+	            </div>
+	            <div class="card-block" style="padding: 24px;" th:object="${cuenta}">
+		            <div class="text-white" style="margin: auto; width:80%; margin-bottom: 4px; background-color: #888888; border-radius: .25rem; border-color: #333333; border-width: 2px; border-style: solid; padding: 1.5% 1.5%">
+						<table class="stats" style="width:100%" th:object="${cuenta.detail}">
+						<tr style="display:none">
+						    <th style="width: 30%; margin-bottom: 2px;"></th>
+						    <th style="width: 70%; margin-bottom: 2px;"></th>
+					  	</tr>
+						<tr>	
+							<td>
+								<label for="business">Com. Mantenimiento:</label>
+							</td>
+							<td>					
+								<input type="text" th:value ="*{comMantenimiento}" class="form-control" readonly disabled/>
+							</td>
+						</tr>
+						<tr>	
+							<td rowspan="3" style="vertical-align: middle">
+								<label for="telf">Intereses(TNA): </label>
+							</td>
+							<td>					
+								<input type="text" th:value ="'Deudor: '+*{intDeudor}" class="form-control" readonly disabled/>
+							</td>
+						</tr>
+						<tr>
+							<td>					
+								<input type="text" th:value ="'Exedente: '+*{intExcedente}" class="form-control" readonly disabled/>
+							</td>
+						</tr>
+						</table>	
+		            </div>
+					<hr>
+					<div style="width: 100%; text-align: center; margin-bottom: 1rem">
+						<a class="btn btn-info" th:href="@{'/admin/cuenta/'+${cuenta.id}+'/reports'}">Ver Pagos</a>
+	            		<a class="btn btn-outline-info" th:href="@{'/admin/cuenta/'+${cuenta.id}+'/new'}">Registrar Movimiento</a>
+	            	</div>
+					<script type="text/javascript">
+						var count = 0;
+						/*<![CDATA[*/
+						var balance = [[${cuenta.maxvalue}]];
+						/*]]>*/
+					</script>
+   	            	<div class="list-cascade">
+		            	<div th:each="move: ${moveList}" class="cascade-item">
+		            		<a class="btn btn-primary cascade-item-icon">
+			            		<script>
+									var me = document.currentScript;
+									count+=1;
+									
+									/*<![CDATA[*/
+									balance += [[${move.value}]];
+									/*]]>*/ 
+									
+									me.parentElement.innerHTML=count;
+								</script>
+		            		</a>
+		            		<div class ="cascade-item-body">
+		            			<th:block th:if="${move.value}>0">
+			            			<a class="text-info" th:text="${move.value}"></a>
+		            			</th:block>
+		            			<th:block th:if="${move.value}<0">
+			            			<a class="text-danger" th:text="${-move.value}"></a>
+		            			</th:block>
+		            		</div>
+		            		<div class="cascade-item-footer">
+			            		<a class="badge badge-light" th:text="${move.commit_date}"></a>
+		            		</div>
+		            	</div>
+   		            	<div class="cascade-item" style="background-color: transparent; border-style:solid; border-width: 4px; border-color:#bbdddd;">	
+		            		<div class="cascade-item-body">
+			        			<script type="text/javascript">
+			        				var me = document.currentScript;
+			        				
+			        				me.parentElement.innerHTML= balance;
+			        			</script>
+		            		</div>
+	            		</div>
+	            	</div>
+            	</div>
+            	<div class="card-footer">
+    				<div style="width:100%; text-align: right">
+     					<a class="btn btn-secondary" th:href = "@{/admin/home}">
+    						atras
+    					</a>
+    				</div>
+  				</div>
+        	</div>
+    	</div>
+	</div>
+	<div th:replace="/fragments/master :: complements"></div>
+</body>
+</html>

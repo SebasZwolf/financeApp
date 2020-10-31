@@ -1,42 +1,34 @@
 package pe.edu.upc.entity;
 
-import java.util.Set;
-
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.MapsId;
-import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.Pattern;
+
+import ch.qos.logback.core.subst.Token.Type;
 
 @Entity
 @Table(name="bank_client")
 public class Cliente {
 	@Id
-	@Column(name="id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int Id;
 	
-	@OneToMany(mappedBy = "owner")
-	private Set<Cuenta> cuentas;
+	@OneToOne(mappedBy = "owner", cascade = CascadeType.ALL, optional = false)
+	private Cuenta cuenta;
 	
 	@Column(name = "client_name", length = 30)
 	private String name;
 	
 	@Column(name = "client_lname", length = 30)
 	private String lname;
-	
-	@ManyToOne(optional = true, fetch = FetchType.LAZY)
-	@JoinColumn(name = "client_business_id", nullable = true)
-	private Negocio business;
-	
+		
 	@Column(name = "client_dni", unique = true, length = 8)
 	@Pattern(regexp = "^([0-9]{8})$", message = "use solo numeros!")
 	private String dni;
@@ -45,7 +37,7 @@ public class Cliente {
 	@Pattern(regexp = "^([0-9]{9})$", message = "use solo numeros!")
 	private String telf;
 	
-	@OneToOne(optional = false)
+	@OneToOne
 	@MapsId
 	@JoinColumn(name = "user_id")
 	private Usuario account;
@@ -57,7 +49,6 @@ public class Cliente {
 		result = prime * result + Id;
 		return result;
 	}
-
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -72,65 +63,47 @@ public class Cliente {
 		return true;
 	}
 
+	public Cuenta getCuenta() {
+		return cuenta;
+	}
+	public void setCuenta(Cuenta cuenta) {
+		this.cuenta = cuenta;
+	}
 	public int getId() {
 		return Id;
 	}
-
 	public void setId(int id) {
 		Id = id;
 	}
-
-	public Set<Cuenta> getCuentas() {
-		return cuentas;
-	}
-
 	public String getName() {
 		return name;
 	}
-
 	public void setName(String d) {
 		name = d;
 	}
-
 	public String getLname() {
 		return lname;
 	}
-
 	public void setLname(String d) {
 		lname = d;
 	}
-
-	public Negocio getBusiness() {
-		return business;
-	}
-
-	public void setBusiness(Negocio d) {
-		business = d;
-	}
-
 	public String getDni() {
 		return dni;
 	}
-
 	public void setDni(String d) {
 		dni = d;
 	}
-
 	public String getTelf() {
 		return telf;
 	}
-
 	public void setTelf(String d) {
 		telf = d;
 	}
-
 	public Usuario getAccount() {
 		return account;
 	}
-
 	public void setAccount(Usuario d) {
 		account = d;
 	}
-	
 	
 }

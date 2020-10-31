@@ -20,7 +20,7 @@ public class CuentaService implements ICuentaService {
 	public List<Cuenta> list() {
 		return cR.findAll();
 	}
-
+	
 	@Override
 	public int insert(Cuenta user) {
 		return cR.save(user).getId();

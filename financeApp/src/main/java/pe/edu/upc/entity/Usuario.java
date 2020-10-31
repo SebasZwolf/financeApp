@@ -26,7 +26,6 @@ public class Usuario {
 	@OneToOne(cascade = CascadeType.ALL, mappedBy = "account", orphanRemoval = true)
 	private Cliente client;
 	
-
 	public int getId() {
 		return Id;
 	}

@@ -15,14 +15,14 @@
 	                </form>	                
 	            </div>
 	            <div class="card-block" style="padding: 24px;">
-	            	<form th:action="@{/admin/client/new}" th:object="${cliente}"
+	            	<form th:action="@{/admin/cuenta/new}" th:object="${cliente}"
 					method="post" enctype="multipart/form-data" id="registerform">
 
-						<div class="col-sm-6">
-							<fieldset>
-								<legend> Profile Info </legend>
+						<div class="col-sm-12">
+							<fieldset class="border p-2">
+								<legend class="w-auto">Perfil </legend>
 								
-								<label for="fname">First Name: </label>
+								<label for="fname">Nombre(s):</label>
 								<input type="text" pattern = "^[a-zA-ZÀ-ÿ]{2,75}( [a-zA-ZÀ-ÿ]{1,75}){0,2}?$"
 									name="fname" id="fname" th:field="*{name}" class="form-control"
 									placeholder="ingrese aquí, los nombres" autofocus required /> 
@@ -30,23 +30,13 @@
 									th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></small>
 								
 								<label
-									for="lname">Last Name: </label>	
-								<input type="text" pattern = "^[a-zA-ZÀ-ÿ]{2,75}( [a-zA-ZÀ-ÿ]{1,75}){1}?$"
+									for="lname">Apellidos: </label>	
+								<input type="text" pattern = "^[a-zA-ZÀ-ÿ]{2,75}( [a-zA-ZÀ-ÿ]{1,75}){1}$"
 									 name="lname" id="lname" th:field="*{lname}" class="form-control"
 									placeholder="ingrese aquí, los apellidos" autofocus required />
 								<small class="form-text text-danger"
 									th:if="${#fields.hasErrors('lname')}" th:errors="*{lname}"></small>
-																
-								<label 
-									for="business">Negocio:</label>
-								<select class="form-control" th:field="*{business}">
-									<option selected value="0"></option>
-									<option
-										th:each="b: ${listNegocio}" th:value="${b.Id}"
-										th:text="${b.name}"
-										th:selected="(${b} == *{business})">
-									</option>
-								</select>		
+																		
 								<label 
 									for="dni">DNI: </label>
 								<input type="text" pattern = "[0-9]{8}"
@@ -65,15 +55,74 @@
 							</fieldset>
 						</div>
 						
-						<div class="col-sm-6">
-							<fieldset>
-								<legend> User Config </legend>
+						<div class="col-sm-12">
+							<fieldset class="border p-2" th:object="${cliente.cuenta}">
+								<legend class="w-auto">Cuenta</legend>
+								
+								<label for="limit">Limite de deuda: </label>
+								<input type="number" step="0.01"
+									min="10" name="limit" id="limit" th:field="*{maxvalue}" class="form-control" value= "0" autofocus required /> 
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('maxvalue')}" th:errors="*{maxvalue}"></small>
+								
+								<label
+									for="start">Fecha de inicio: </label>	
+								<input type="date"
+									 name="start" id="start" th:field="*{start}" class="form-control"
+									autofocus required readonly/>
+																
+								<label
+									for="start">Periodo de pago: </label>	
+								<input type="number"
+									 name="length" id="length" min="1" step="1" class="form-control" th:field="*{payment_period}"
+									autofocus required />
+								
+								<input type="hidden" th:value="*{moneda}"/>
+								
+								<label
+									for="moneda">Moneda: </label>
+								<select class="form-control" name="mon">
+									<option th:each ="mon : ${T(pe.edu.upc.entity.Moneda).values()}"
+										th:value="${mon.ordinal()}" th:text="${mon}"></option>
+								</select>
+							</fieldset>
+						</div>
+						<div class="col-sm-12">
+							<fieldset class="border p-2" th:object="${cliente.cuenta.detail}">
+								<legend class="w-auto">Detalle de cuenta</legend>
+																
+								<label for="username">Comision por Mantenimiento: </label> 
+								<input type="number" step="0.01"
+									name="comMant" id="comMant" th:field="*{comMantenimiento}"
+									class="form-control" autofocus required/>
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('comMantenimiento')}" th:errors="*{comMantenimiento}"></small>
+									
+								<label for="username">Interez por Deuda(TNA%): </label> 
+								<input type="number" step="0.01"
+									name="intDeudor" id="intDeudor" th:field="*{intDeudor}"
+									class="form-control" autofocus required/>
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('intDeudor')}" th:errors="*{intDeudor}"></small>
+								
+								<label for="username">Interez por Excedido(TNA%): </label> 
+								<input type="number" step="0.01"
+									name="intExcedente" id="intExcedente" th:field="*{intExcedente}"
+									class="form-control" autofocus required/>
+								<small class="form-text text-danger"
+									th:if="${#fields.hasErrors('intExcedente')}" th:errors="*{intExcedente}"></small>
+							</fieldset>
+						</div>
+						
+						<div class="col-sm-12">
+							<fieldset class="border p-2" th:object="${cliente.account}">
+								<legend class="w-auto">Usuario</legend>
 								<label for="username">Username: </label> 
 								<input type="text" pattern="^[a-zA-Z0-9]{5,30}$" 
-									name="username" id="username" th:field="*{account.uname}"
+									name="username" id="username" th:field="*{uname}"
 									class="form-control" placeholder="usuario" autofocus required />
 								<small class="form-text text-danger"
-									th:if="${#fields.hasErrors('account.uname')}" th:errors="*{account.uname}"></small>
+									th:if="${#fields.hasErrors('uname')}" th:errors="*{uname}"></small>
 							</fieldset>
 						</div>
 					</form>
