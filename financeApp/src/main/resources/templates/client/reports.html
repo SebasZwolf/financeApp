@@ -56,26 +56,25 @@
 	            	<table class="table table-striped">
 						<thead class="thead-dark">
 							<tr>
-								<th scope="col">Pago</th>
+								<th scope="col">Días</th>
 								<th scope="col">Fecha</th>
 								<th scope="col">Valor</th>
 							</tr>
 						</thead>
 						<tbody id="myTable">
 							<tr th:each="row: ${listPayments}">
+								<td th:text="${row[2]}"></td>
 								<td th:text="${row[0]}"></td>
 								<td th:text="${row[1]}"></td>
-								<td th:text="${row[2]}"></td>
 							</tr>
 						</tbody>
 					</table>
+					<hr>
+					<a th:text="'Intereces Acumulados('+ ${today} +'): '+${intereces}"></a>
 				</div>
                 <div class="card-footer">
     				<div style="width:100%; text-align: right">
-    					<button type="submit" class="btn btn-success" form = "registerform">
-    						guardar
-    					</button>
-     					<a class="btn btn-secondary" th:href = "@{'/client/account/'+${account_id}+'/detail'}">
+     					<a class="btn btn-secondary" th:href = "@{/client/home}">
     						atras
     					</a>
     				</div>

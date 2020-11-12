@@ -1,40 +1,36 @@
 package pe.edu.upc.controller;
 
+import java.security.Principal;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
-
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import pe.edu.upc.entity.Cuenta;
 import pe.edu.upc.entity.Move;
 import pe.edu.upc.entity.Usuario;
-import pe.edu.upc.iservice.ICuentaService;
 import pe.edu.upc.iservice.IMoveService;
 import pe.edu.upc.iservice.IUsuarioService;
 
 @Controller
 @RequestMapping("/client")
+@Secured("ROLE_USER")
 public class ClientController {
 
 	@Autowired
 	private IUsuarioService uS;
-	
-	@Autowired
-	private ICuentaService cS;
-	
+
 	@Autowired
 	private IMoveService mS;
 	
@@ -42,118 +38,128 @@ public class ClientController {
 	public String goHome(Model model, Authentication auth) {
 		Usuario user = uS.findByUname(auth.getName()).get();
 		
-		System.out.println(user.getUname());
+		Cuenta cuenta = user.getClient().getCuenta();
 		
-		model.addAttribute("cliente", user.getClient());
+		model.addAttribute("cuenta", cuenta);
+		model.addAttribute("moveList", mS.list(cuenta));
+		model.addAttribute("client", cuenta.getOwner());
 		
 		return "/client/home";
 	}
 
-	@GetMapping("/account/{account_id}/detail")
-	public String goAccountDetail(Model model, Authentication auth, @PathVariable(name="account_id") int account_id) {
-		Cuenta cuenta =  cS.findById(account_id).get();
-		
-		if( !auth.getName().equals(cuenta.getOwner().getAccount().getUname()) ) {
-			System.out.println( auth.getName() + " " + cuenta.getOwner().getAccount().getUname());
-			
-			return "redirect:/client/home";
-		}
-		
-		model.addAttribute("cuenta", cuenta);
-		
-		model.addAttribute("moveList", mS.list(cuenta));
-		
-		return "/client/account/detail";
-	}
-	
-	@GetMapping("/{id}/activate")
-	public String goActivate(Model model, @PathVariable(name="id") int id) {
-		
-		model.addAttribute("id", id);
-		
-		return "/client/activate";
-	}
-	
-	@GetMapping("/account/{account_id}/move/new")
-	public String goMakeMove(Model model, Authentication auth, @PathVariable(name="account_id") int account_id) {
+	@GetMapping("/reports")
+	public String goReports(Model model, Principal principal) {
 		
 		
 		
-		model.addAttribute("account_id", account_id);
-		model.addAttribute("move", new Move());
+
+		Cuenta cuenta =uS.findByUname(principal.getName()).get().getClient().getCuenta();
+		List<String[]> data = new ArrayList<String[]>();
+
+		DateFormat dF = new SimpleDateFormat( "dd-MM-yyyy");
+		DecimalFormat dF2 = new DecimalFormat("#.####	");
 		
-		return "/client/account/move/new";
-	}
-	
-	@GetMapping("/account/{account_id}/move/detail")
-	public String goSeePayments(Model model, Authentication auth, @PathVariable(name="account_id") int account_id) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(cuenta.getStart());
 		
-		List<String[]> pays = new ArrayList<>();
+		Calendar limitCal = Calendar.getInstance();
+		limitCal.setTime(cal.getTime());
+		limitCal.add(Calendar.MONTH, cuenta.getPayment_period());
 		
-		/*Cuenta cuenta = cS.findById(account_id).get();
+		System.out.println("limit: " + String.valueOf(limitCal.getTime()));
+		
+		double balance = cuenta.getMaxvalue();
 		
 		List<Move> moves = mS.list(cuenta);
-		List<Move> auxmoves = new ArrayList<>();
+		Calendar cal2  = Calendar.getInstance();
 		
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(cuenta.getEnd());
-		int lenght = calendar.get(Calendar.YEAR) * 12 +  calendar.get(Calendar.MONTH);
-		calendar.setTime(cuenta.getStart());
-		lenght = lenght - calendar.get(Calendar.YEAR)*12 - calendar.get(Calendar.MONTH);
+		float intDeudor = cuenta.getDetail().getIntDeudor() / 360;
+		double Intereces = 0;
+				
+		int  accDays = 0;
 		
-		moves.forEach(p->{
+		for(Move p: moves) {
+			cal2.setTime(p.getCommit_date());
+			System.out.println("[D][" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "]["+ String.valueOf(balance)+"]["+ String.valueOf(p.getValue())+"]");
 			
-		});	*/
-		
-		
-		String[] e = {
-			"1","12-10-2020","1200"	
-		};
-		pays.add(e);
-		
-		model.addAttribute("listPayments", pays);
-		return "client/account/move/detail";
-	}
-	
-	@PostMapping("/account/{account_id}/move/new")
-	public String MakeMove(@Valid Move move, BindingResult result,  Model model, Authentication auth, @PathVariable(name="account_id") int account_id) {
-		if(result.hasErrors()) {
-			model.addAttribute("account_id", account_id);
+			double tmpVal = cuenta.getMaxvalue() - balance;
 
-			model.addAttribute("move", move);
-			
-			return "/client/account/move/new";
-		}
+			if(limitCal.getTime().compareTo(p.getCommit_date()) < 0) {
+				System.out.println("jumped");
 		
-		move.setAccount(cS.findById(account_id).get());
-		Cuenta cuenta = move.getAccount();
-		cuenta.setBalance((float) (cuenta.getBalance() + move.getValue()));
-		cS.insert(cuenta);
-		
-		Optional<Move> auxMmove = mS.getLast(cS.findById(account_id).get());
-
-		if(auxMmove.isPresent())
-		{
-			Move auxmove = auxMmove.get();
-		
-			if(auxmove.getCommit_date().compareTo(move.getCommit_date()) == 0) {
-				move.setId(auxmove.getId());	
-				move.setValue(move.getValue() + auxmove.getValue());
+				int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - limitCal.get(Calendar.YEAR)*360 - limitCal.get(Calendar.DAY_OF_YEAR));
+				
+				System.out.println("[J][" + String.valueOf(cal.getTime()) + ";" + String.valueOf(limitCal.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+				
+				Intereces += tmpVal * intDeudor *  DayDiff;
+				balance += p.getValue();
+				
+				cal.setTime(limitCal.getTime());
+				
+				String[] dat = {
+						dF.format(limitCal.getTime()) ,  dF2.format(Intereces), String.valueOf(accDays + DayDiff)
+				};
+				data.add(dat);
+				accDays = 0;
+				limitCal.add(Calendar.MONTH, cuenta.getPayment_period());
+				Intereces = 0;
+				
 			}
+				
+			int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - cal2.get(Calendar.YEAR)*360 - cal2.get(Calendar.DAY_OF_YEAR));
+			
+			System.out.println("[R][" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+	
+			Intereces += tmpVal * intDeudor *  DayDiff;
+			
+			balance += p.getValue();
+	
+			cal.setTime(cal2.getTime());
+			
+			accDays += DayDiff;
 		}
 		
-		mS.insert(move);
+		//lastmove
 		
-		return "redirect:/client/account/" + String.valueOf(account_id) + "/move/new";
+		cal2.setTime(new Date());
+		System.out.println("[" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "]["+ String.valueOf(balance)+"][end]");
+		double tmpVal = cuenta.getMaxvalue() - balance;
+				
+		while(true) {
+			if(limitCal.compareTo(cal2) < 0) {
+				int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - limitCal.get(Calendar.YEAR)*360 - limitCal.get(Calendar.DAY_OF_YEAR));
+				
+				System.out.println("[" + String.valueOf(cal.getTime()) + ";" + String.valueOf(limitCal.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+		
+				Intereces += tmpVal * intDeudor *  DayDiff;
+				
+				cal.setTime(limitCal.getTime());
+				String[] dat = {
+						dF.format(limitCal.getTime()), dF2.format(Intereces), String.valueOf(DayDiff)
+				};
+				data.add(dat);
+				
+				limitCal.add(Calendar.MONTH, cuenta.getPayment_period());
+				Intereces = 0;				
+			}else {
+				int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - cal2.get(Calendar.YEAR)*360 - cal2.get(Calendar.DAY_OF_YEAR));
+				
+				System.out.println("[" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+		
+				Intereces += tmpVal * intDeudor *  DayDiff;				
+				break;
+			}			
+		}
+
+		data.forEach(p->{
+			System.out.println(p[0] + ": " + p[1]);
+		});
+		
+		model.addAttribute("listPayments", data);
+		model.addAttribute("today", dF.format(new Date()));
+		model.addAttribute("intereces", dF2.format(Intereces));
+				
+		return "/client/reports";
 	}
 	
-	@PostMapping("/{id}/activate")
-	public String Activate(Model model, @PathVariable(name="id")int id, @RequestParam(name="password") String pass) {
-		
-		Usuario user = uS.findById(id).get();
-		user.setUpass(new BCryptPasswordEncoder().encode(pass));
-		uS.insert(user);
-		
-		return "redirect:/client/home";
-	}
 }

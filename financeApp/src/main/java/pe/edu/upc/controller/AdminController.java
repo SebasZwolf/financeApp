@@ -1,19 +1,23 @@
 package pe.edu.upc.controller;
 
 import java.security.Principal;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
-//import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,21 +29,18 @@ import pe.edu.upc.entity.Cuenta;
 import pe.edu.upc.entity.Moneda;
 import pe.edu.upc.entity.Move;
 import pe.edu.upc.entity.Usuario;
-import pe.edu.upc.iservice.IClienteService;
 import pe.edu.upc.iservice.ICuentaService;
 import pe.edu.upc.iservice.IMoveService;
 import pe.edu.upc.iservice.IUsuarioService;
 
 @Controller
 @RequestMapping("/admin")
+@Secured("ROLE_ADMIN")
 public class AdminController {
 	
 	@Autowired
 	private IMoveService mS;
-	
-	@Autowired
-	private IClienteService cS;
-	
+		
 	@Autowired
 	private IUsuarioService uS;
 	
@@ -119,6 +120,7 @@ public class AdminController {
 		
 		model.addAttribute("cuenta", cuenta);
 		model.addAttribute("moveList", mS.list(cuenta));
+		model.addAttribute("client", cuenta.getOwner());
 		
 		return "/admin/client/detail";
 	}
@@ -176,147 +178,114 @@ public class AdminController {
 		return "redirect:/admin/cuenta/" + String.valueOf(account_id);
 	}
 	
-	
-	@GetMapping("/client/list")
-	public String goClientList(Model model) {
-		model.addAttribute("listClientes", uS.list());
-		return "/admin/client/list";
-	}
-	
-	@GetMapping("/business/new")
-	public String goNewBusiness(Model model) {
-		//model.addAttribute("negocio",new Negocio());
-		return "admin/business/new";
-	}
-	
-	@GetMapping("/business/list")
-	public String goBusinessList(Model model) {
-		//model.addAttribute("listNegocio", nS.list());
-		return "/admin/business/list";
-	}
-	
-	@GetMapping("/admin/new")
-	public String goNewAdmin(Model model) {
-		model.addAttribute("usuario", new Usuario());
-		return "/admin/admin/new";
-	}
-	
-	@GetMapping("/client/{id}/account/list")
-	public String goCuentaList(@PathVariable(name="id") int id, Model model) {
-		//Cliente cli = cS.findById(id).get();
+	@GetMapping("/cuenta/{id_account}/reports")
+	public String goReports(Model model, @PathVariable(name="id_account") int account_id) {
 		
-		model.addAttribute("id", id);
-		//model.addAttribute("listCuenta", cli.getCuentas());
-		
-		return "admin/client/account/list";
-	}
-	
-	@GetMapping("/client/{id}/account/new")
-	public String goNewCuenta(@PathVariable(name="id") int id, Model model) {
-		model.addAttribute("id", id);
-		model.addAttribute("cuenta", new Cuenta());
-		
-		return "admin/client/account/new";
-	}
-	
-	@PostMapping("/business/new")
-	public String registerBusiness(/*@Valid Negocio cli,*/BindingResult result, Model model) {		
-		if(result.hasErrors()) {
-			//model.addAttribute("negocio", cli);
-			
-			return "/admin/business/new";
-		}
-		
-		//System.out.println(cli.getDesc());
-		
-		//if(cli.getDesc().trim() == "")
-		//	cli.setDesc("");
-		
-		try {
-			//nS.insert(cli);						
-		} catch (Exception e) {
-			//model.addAttribute("cliente", cli);
-			
-			model.addAttribute("error", e.getMessage());
-			
-			return  "/admin/business/new";
-		}
-		return "redirect:/admin/home";
-	}
-	
-	@PostMapping("/admin/new")
-	public String registerAdmin(@Valid Usuario user, BindingResult result, Model model) {		
-		if(result.hasErrors()) {
-			model.addAttribute("usuario", user);
-			
-			for(ObjectError err : result.getAllErrors()){
-				System.out.println(err.getDefaultMessage());
-			}
-			
-			return "/admin/admin/new";
-		}
-						
-		user.setUpass(new BCryptPasswordEncoder().encode(user.getUpass()));
-		user.setIsadmin(true);
-		user.setIsenabled(true);
-		
-		try {
-			uS.insert(user);						
-		} catch (Exception e) {
-			model.addAttribute("usuario", user);
-			
-			model.addAttribute("error", e.getMessage());
-			
-			return  "/admin/admin/new";
-		}
-		return "redirect:/admin/home";
-	}
+		Cuenta cuenta = cuS.findById(account_id).get();
+		List<String[]> data = new ArrayList<String[]>();
 
-	@PostMapping("/client/{id}/account/new")
-	public String RegisterAccount(@Valid Cuenta cuenta, BindingResult result, Model model,
-			@PathVariable(name="id") int id, @RequestParam(name="length") int length, @RequestParam(name="mon") int moneda) {
-		if(result.hasErrors()) {
-			model.addAttribute("id", id);
-			model.addAttribute("cuenta", cuenta);
+		DateFormat dF = new SimpleDateFormat( "dd-MM-yyyy");
+		DecimalFormat dF2 = new DecimalFormat("#.####	");
+		
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(cuenta.getStart());
+		
+		Calendar limitCal = Calendar.getInstance();
+		limitCal.setTime(cal.getTime());
+		limitCal.add(Calendar.MONTH, cuenta.getPayment_period());
+		
+		System.out.println("limit: " + String.valueOf(limitCal.getTime()));
+		
+		double balance = cuenta.getMaxvalue();
+		
+		List<Move> moves = mS.list(cuenta);
+		Calendar cal2  = Calendar.getInstance();
+		
+		float intDeudor = cuenta.getDetail().getIntDeudor() / 360;
+		double Intereces = 0;
+				
+		int  accDays = 0;
+		
+		for(Move p: moves) {
+			cal2.setTime(p.getCommit_date());
+			System.out.println("[D][" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "]["+ String.valueOf(balance)+"]["+ String.valueOf(p.getValue())+"]");
 			
-			for(ObjectError err : result.getAllErrors()){
-				System.out.println(err.getDefaultMessage());
+			double tmpVal = cuenta.getMaxvalue() - balance;
+
+			if(limitCal.getTime().compareTo(p.getCommit_date()) < 0) {
+				System.out.println("jumped");
+		
+				int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - limitCal.get(Calendar.YEAR)*360 - limitCal.get(Calendar.DAY_OF_YEAR));
+				
+				System.out.println("[J][" + String.valueOf(cal.getTime()) + ";" + String.valueOf(limitCal.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+				
+				Intereces += tmpVal * intDeudor *  DayDiff;
+				balance += p.getValue();
+				
+				cal.setTime(limitCal.getTime());
+				
+				String[] dat = {
+						dF.format(limitCal.getTime()) ,  dF2.format(Intereces), String.valueOf(accDays + DayDiff)
+				};
+				data.add(dat);
+				accDays = 0;
+				limitCal.add(Calendar.MONTH, cuenta.getPayment_period());
+				Intereces = 0;
+				
 			}
+				
+			int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - cal2.get(Calendar.YEAR)*360 - cal2.get(Calendar.DAY_OF_YEAR));						System.out.println("[R][" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+	
+			Intereces += tmpVal * intDeudor *  DayDiff;
+						balance += p.getValue();
+				cal.setTime(cal2.getTime());
 			
-			return "/admin/client/account/new";
+			accDays += DayDiff;
 		}
 		
-		cuenta.setMoneda(Moneda.values()[moneda]);
+		//lastmove
 		
-		//cuenta.setBalance(cuenta.getLimit());
+		cal2.setTime(new Date());
+		System.out.println("[" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "]["+ String.valueOf(balance)+"][end]");
+		double tmpVal = cuenta.getMaxvalue() - balance;
+				
+		while(true) {
+			if(limitCal.compareTo(cal2) < 0) {
+				int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - limitCal.get(Calendar.YEAR)*360 - limitCal.get(Calendar.DAY_OF_YEAR));
+				
+				System.out.println("[" + String.valueOf(cal.getTime()) + ";" + String.valueOf(limitCal.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
 		
-		cuenta.setOwner(cS.findById(id).get());
+				Intereces += tmpVal * intDeudor *  DayDiff;
+				
+				cal.setTime(limitCal.getTime());
+				String[] dat = {
+						dF.format(limitCal.getTime()), dF2.format(Intereces), String.valueOf(DayDiff)
+				};
+				data.add(dat);
+				
+				limitCal.add(Calendar.MONTH, cuenta.getPayment_period());
+				Intereces = 0;				
+			}else {
+				int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - cal2.get(Calendar.YEAR)*360 - cal2.get(Calendar.DAY_OF_YEAR));
+				
+				System.out.println("[" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
 		
-		Calendar c = Calendar.getInstance();
-		c.setTime(cuenta.getStart());
-		c.set(Calendar.DAY_OF_MONTH, 1);
+				Intereces += tmpVal * intDeudor *  DayDiff;				
+				break;
+			}			
+		}
+
+		data.forEach(p->{
+			System.out.println(p[0] + ": " + p[1]);
+		});
 		
-		cuenta.setStart(c.getTime());
+		model.addAttribute("account_id", account_id);
+		model.addAttribute("listPayments", data);
+		model.addAttribute("today", dF.format(new Date()));
+		model.addAttribute("intereces", dF2.format(Intereces));
 		
-		c.add(Calendar.MONTH, length);
-		
-		//cuenta.setEnd(c.getTime());
-		
-		/*DetalleCuenta dc =  cuenta.getDetail();
-		dc.setComApertura((float) (dc.getComApertura() * 0.01));
-		dc.setComRenovar((float) (dc.getComRenovar() * 0.01));
-		dc.setComDisponibildiad((float) (dc.getComDisponibildiad() * 0.01));
-		
-		dc.setIntDeudor((float) (dc.getIntDeudor() * 0.01));
-		dc.setIntExcedente((float) (dc.getIntExcedente() * 0.01));
-		dc.setIntExcedente((float) (dc.getIntAcreedor() * 0.01));
-		
-		//cuenta.setOpen(true);
-		
-		dc.setBankAccount(cuenta);
-		*/
-		System.out.println(	cuS.insert(cuenta));
-		
-		return "redirect:/admin/client/" + String.valueOf(id) + "/account/list";
+		return "/admin/client/move/detail";
 	}
+	
+	
 }

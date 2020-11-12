@@ -23,6 +23,7 @@ public class AppInit implements CommandLineRunner{
 		
 	@Override
 	public void run(String... args) throws Exception {
+		
 		if(uR.findByIsadmin(true).size() > 0) return;
 
 		Usuario entity = new Usuario();

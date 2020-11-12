@@ -1,5 +1,6 @@
 package pe.edu.upc.iservice;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,4 +16,6 @@ public interface IMoveService {
 	
 	int insert(Move user);
 	int delete(int id);
+
+	List<Move> listFrom(Cuenta cuenta, Date date);
 }

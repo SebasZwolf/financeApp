@@ -22,6 +22,11 @@ public class MoveService implements IMoveService {
 	public List<Move> list(Cuenta cuenta) {
 		return mR.fetchFrom(cuenta.getId(), cuenta.getStart());
 	}
+	
+	@Override
+	public List<Move> listFrom(Cuenta cuenta, Date date){
+		return mR.fetchFrom(cuenta.getId(), date);
+	}
 
 	@Override
 	public Optional<Move> findById(int id) {
