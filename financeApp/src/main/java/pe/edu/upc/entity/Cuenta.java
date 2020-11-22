@@ -4,7 +4,9 @@ import java.util.Date;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -21,6 +23,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.Min;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
@@ -33,6 +37,10 @@ public class Cuenta {
 	
 	@Column(name="account_balance", nullable = false)
 	private float balance;
+	
+	@ElementCollection
+	@CollectionTable(name = "pagos_pagados", joinColumns = @JoinColumn(name="client_account_id"))
+	private Set<Integer> pagados;
 	
 	@OneToOne
 	@MapsId
@@ -60,6 +68,11 @@ public class Cuenta {
 	@OneToMany(mappedBy = "account")
 	private Set<Move> historial;
 	
+	
+	public Set<Integer> getPagados() {
+		return pagados;
+	}
+		
 	public Set<Move> getHistorial() {
 		return historial;
 	}

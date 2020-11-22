@@ -1,5 +1,6 @@
 package pe.edu.upc.controller;
 
+import java.lang.ProcessBuilder.Redirect;
 import java.security.Principal;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import pe.edu.upc.entity.Cliente;
 import pe.edu.upc.entity.Cuenta;
@@ -128,7 +130,10 @@ public class AdminController {
 	@GetMapping("/cuenta/{account_id}/new")
 	public String goNewMove(Model model, @PathVariable(name="account_id") int account_id) {
 		
+		Cuenta cuenta = cuS.findById(account_id).get();
+		
 		model.addAttribute("account_id", account_id);
+		model.addAttribute("cuenta", cuenta);
 		model.addAttribute("move", new Move());
 
 		return "/admin/client/move/new";
@@ -136,10 +141,14 @@ public class AdminController {
 	
 	@PostMapping("/cuenta/{account_id}/new")
 	public String goNewMove(@Valid Move move, BindingResult result, Model model, @PathVariable(name="account_id") int account_id,
-			 @RequestParam(name="positive", defaultValue = "false") boolean pos) {
+			 @RequestParam(name="positive", defaultValue = "false") boolean pos, RedirectAttributes objRedirect) {
 		
+		Cuenta cuenta = cuS.findById(account_id).get();
+
 		if(result.hasErrors()) {
+			
 			model.addAttribute("account_id", account_id);
+			model.addAttribute("cuenta", cuenta);
 			model.addAttribute("move", move);
 
 			return "/admin/client/move/new";
@@ -149,8 +158,27 @@ public class AdminController {
 			move.setValue(move.getValue() * -1);
 		}
 		
-		Cuenta cuenta = cuS.findById(account_id).get();
+		if(!pos && -move.getValue() > cuenta.getBalance())
+		{
+			model.addAttribute("account_id", account_id);
+			model.addAttribute("cuenta", cuenta);
 
+			move.setValue(move.getValue() * -1);
+			model.addAttribute("move", move);
+
+			model.addAttribute("error", "valor limite de deuda exedido! (max" + String.valueOf(cuenta.getBalance()) + ")");
+			
+			return "/admin/client/move/new";
+		}
+		
+		if(pos && (move.getValue() + cuenta.getBalance()) > cuenta.getMaxvalue()) {
+			double exedido = (move.getValue() + cuenta.getBalance()) - cuenta.getMaxvalue();
+			
+			objRedirect.addFlashAttribute("vuelto", exedido);
+			//model.addAttribute("message", "vuelto: " + String.valueOf(exedido));
+			move.setValue(move.getValue() - exedido);
+		}
+		
 		Optional<Move> auxMmove = mS.getLast(cuenta);
 		
 		cuenta.setBalance((float) (cuenta.getBalance()+ move.getValue()));
@@ -183,9 +211,9 @@ public class AdminController {
 		
 		Cuenta cuenta = cuS.findById(account_id).get();
 		List<String[]> data = new ArrayList<String[]>();
-
+		
 		DateFormat dF = new SimpleDateFormat( "dd-MM-yyyy");
-		DecimalFormat dF2 = new DecimalFormat("#.####	");
+		DecimalFormat dF2 = new DecimalFormat("#.####");
 		
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(cuenta.getStart());
@@ -194,50 +222,58 @@ public class AdminController {
 		limitCal.setTime(cal.getTime());
 		limitCal.add(Calendar.MONTH, cuenta.getPayment_period());
 		
-		System.out.println("limit: " + String.valueOf(limitCal.getTime()));
+		System.out.println("limit: " +dF.format(limitCal.getTime()));
 		
-		double balance = cuenta.getMaxvalue();
+		//double balance = cuenta.getMaxvalue();
 		
 		List<Move> moves = mS.list(cuenta);
 		Calendar cal2  = Calendar.getInstance();
 		
 		float intDeudor = cuenta.getDetail().getIntDeudor() / 360;
 		double Intereces = 0;
-				
+		
+		System.out.println("interez deudor: " + String.valueOf(intDeudor));
+		
 		int  accDays = 0;
 		
-		for(Move p: moves) {
-			cal2.setTime(p.getCommit_date());
-			System.out.println("[D][" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "]["+ String.valueOf(balance)+"]["+ String.valueOf(p.getValue())+"]");
-			
-			double tmpVal = cuenta.getMaxvalue() - balance;
-
-			if(limitCal.getTime().compareTo(p.getCommit_date()) < 0) {
-				System.out.println("jumped");
+		double deudaAcumulada = 0;
 		
+		int NPay = 1;
+		
+		for(Move p: moves) {
+			
+			cal2.setTime(p.getCommit_date());
+			System.out.println("\u001B[0m" + "[D][" 
+					+ dF.format(cal.getTime()) + 								";"
+					+ dF.format(cal2.getTime()) +								"]["
+					+ String.valueOf(deudaAcumulada)+					"]["
+					+ String.valueOf(p.getValue())+							"]" + "\u001B[0m");
+						
+			while(limitCal.getTime().compareTo(p.getCommit_date()) < 0) {		
 				int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - limitCal.get(Calendar.YEAR)*360 - limitCal.get(Calendar.DAY_OF_YEAR));
 				
-				System.out.println("[J][" + String.valueOf(cal.getTime()) + ";" + String.valueOf(limitCal.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+				System.out.println("[J][" + dF.format(cal.getTime()) + ";" + dF.format(limitCal.getTime()) + "][" + String.valueOf(DayDiff) +"][" + String.valueOf(deudaAcumulada)+ "]");
 				
-				Intereces += tmpVal * intDeudor *  DayDiff;
-				balance += p.getValue();
+				Intereces += deudaAcumulada * intDeudor *  DayDiff;
 				
 				cal.setTime(limitCal.getTime());
 				
 				String[] dat = {
-						dF.format(limitCal.getTime()) ,  dF2.format(Intereces), String.valueOf(accDays + DayDiff)
+						dF.format(limitCal.getTime()) ,  dF2.format(Intereces), String.valueOf(accDays + DayDiff), String.valueOf(cuenta.getPagados().contains(NPay))
 				};
+				
+				NPay++;
+				
 				data.add(dat);
 				accDays = 0;
 				limitCal.add(Calendar.MONTH, cuenta.getPayment_period());
-				Intereces = 0;
-				
+				Intereces = 0;	
 			}
 				
-			int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - cal2.get(Calendar.YEAR)*360 - cal2.get(Calendar.DAY_OF_YEAR));						System.out.println("[R][" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+			int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - cal2.get(Calendar.YEAR)*360 - cal2.get(Calendar.DAY_OF_YEAR));						System.out.println("[R][" + dF.format(cal.getTime()) + ";" + dF.format(cal2.getTime()) + "][" + String.valueOf(DayDiff) + "]["+ String.valueOf(deudaAcumulada)+ "]");
 	
-			Intereces += tmpVal * intDeudor *  DayDiff;
-						balance += p.getValue();
+			Intereces += deudaAcumulada * intDeudor *  DayDiff;
+						deudaAcumulada += -p.getValue();
 				cal.setTime(cal2.getTime());
 			
 			accDays += DayDiff;
@@ -246,21 +282,23 @@ public class AdminController {
 		//lastmove
 		
 		cal2.setTime(new Date());
-		System.out.println("[" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "]["+ String.valueOf(balance)+"][end]");
-		double tmpVal = cuenta.getMaxvalue() - balance;
+		System.out.println("[" + dF.format(cal.getTime()) + ";" + dF.format(cal2.getTime()) + "]["+ String.valueOf(deudaAcumulada)+"][end]");
+		//double tmpVal = cuenta.getMaxvalue() - balance;
 				
 		while(true) {
 			if(limitCal.compareTo(cal2) < 0) {
 				int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - limitCal.get(Calendar.YEAR)*360 - limitCal.get(Calendar.DAY_OF_YEAR));
 				
-				System.out.println("[" + String.valueOf(cal.getTime()) + ";" + String.valueOf(limitCal.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+				System.out.println("[" + dF.format(cal.getTime()) + ";" +dF.format(limitCal.getTime()) + "][" + String.valueOf(DayDiff) + String.valueOf(deudaAcumulada)+ "]");
 		
-				Intereces += tmpVal * intDeudor *  DayDiff;
+				Intereces += deudaAcumulada * intDeudor *  DayDiff;
 				
 				cal.setTime(limitCal.getTime());
 				String[] dat = {
-						dF.format(limitCal.getTime()), dF2.format(Intereces), String.valueOf(DayDiff)
+						dF.format(limitCal.getTime()), dF2.format(Intereces), String.valueOf(DayDiff), String.valueOf(cuenta.getPagados().contains(NPay))
 				};
+				NPay++;
+				
 				data.add(dat);
 				
 				limitCal.add(Calendar.MONTH, cuenta.getPayment_period());
@@ -268,9 +306,9 @@ public class AdminController {
 			}else {
 				int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - cal2.get(Calendar.YEAR)*360 - cal2.get(Calendar.DAY_OF_YEAR));
 				
-				System.out.println("[" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+				System.out.println("[" + dF.format(cal.getTime()) + ";" + dF.format(cal2.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(deudaAcumulada)+ "]");
 		
-				Intereces += tmpVal * intDeudor *  DayDiff;				
+				Intereces += deudaAcumulada * intDeudor *  DayDiff;				
 				break;
 			}			
 		}
@@ -287,5 +325,24 @@ public class AdminController {
 		return "/admin/client/move/detail";
 	}
 	
-	
+	@PostMapping("/cuenta/{id_account}/reports/pay")
+	public String registerPayment(Model model, @PathVariable(name="id_account") int id_account, @RequestParam(name="npay", defaultValue = "0") int npay) {
+		System.out.print("llegando! ");
+		System.out.println(npay);
+		
+		if(npay == 0)
+			return "redirect:/admin/cuenta/" + String.valueOf(id_account) + "/reports" ;
+		
+		Cuenta cuenta = cuS.findById(id_account).get();
+		
+		if(cuenta.getPagados().contains(npay))
+			return "redirect:/admin/cuenta/" + String.valueOf(id_account) + "/reports" ;
+		
+		
+		System.out.print("llegaste!");
+		cuS.setPaid(cuenta, npay);
+		
+			
+		return "redirect:/admin/cuenta/" + String.valueOf(id_account) + "/reports" ;
+	}
 }

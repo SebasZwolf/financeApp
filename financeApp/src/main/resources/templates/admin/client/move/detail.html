@@ -52,20 +52,60 @@
 		                <button type="submit" class="btn btn-outline-danger text-white">salir</button>
 	                </form>	                
 	            </div>
+	            <form id="payform" th:action="@{'/admin/cuenta/'+${id_account}+'/reports/pay'}" method="post">
+	            	<input type="hidden" name="npay" value="0" id="npay">
+	            </form>
 	            <div class="card-block" style="padding: 24px;">
 	            	<table class="table table-striped">
 						<thead class="thead-dark">
 							<tr>
 								<th scope="col">Días</th>
 								<th scope="col">Fecha</th>
-								<th scope="col">Valor</th>
+								<th scope="col" colspan="2">Valor</th>
 							</tr>
 						</thead>
 						<tbody id="myTable">
+						<script>
+							var pos = 1;
+							var inp = document.getElementById("npay");
+						</script>
 							<tr th:each="row: ${listPayments}">
 								<td th:text="${row[2]}"></td>
 								<td th:text="${row[0]}"></td>
 								<td th:text="${row[1]}"></td>
+								<td>
+									<button form="payform" type="submit">
+										<script type="text/javascript">
+											var me = document.currentScript;
+											var value = "";
+											var bol = false;
+											
+											/*<![CDATA[*/
+												bol = [[${row[3]}]];
+											/*]]>*/ 
+											
+											if(bol){
+												me.parentElement.className="badge badge-success"
+												value = "pagado"
+												me.parentElement.disabled = "true";
+											}else{
+												
+												/*<![CDATA[*/
+												me.parentElement.onclick = function(){
+														inp.setAttribute("value", [[${rowStat.index + 1}]]);
+													}
+												/*]]>*/ 
+												
+												
+												me.parentElement.className="badge badge-warning"
+												value = "pagar"
+											}
+											
+											pos++;
+											me.parentElement.innerHTML = value;
+										</script>
+									</button>
+								</td>
 							</tr>
 						</tbody>
 					</table>

@@ -11,11 +11,16 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.method.P;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import pe.edu.upc.entity.Cuenta;
 import pe.edu.upc.entity.Move;
@@ -34,6 +39,24 @@ public class ClientController {
 	@Autowired
 	private IMoveService mS;
 	
+	@GetMapping("/{account_id}/activate")
+	public String goActivate(Model model, Authentication auth, @PathVariable(name="account_id") int account_id) {
+		
+		model.addAttribute("id", account_id);
+		
+		return "client/activate";
+	}
+	
+	@PostMapping("/{account_id}/activate")
+	public String Activate(Model model, Authentication auth, @PathVariable(name="account_id") int account_id, @RequestParam(name="password", required = true) String pass) {
+		
+		Usuario user = uS.findByUname(auth.getName()).get();
+		user.setUpass(new BCryptPasswordEncoder().encode(pass));
+		uS.insert(user);
+		
+		return "redirect:/client/home";
+	}
+	
 	@GetMapping("/home")
 	public String goHome(Model model, Authentication auth) {
 		Usuario user = uS.findByUname(auth.getName()).get();
@@ -50,14 +73,11 @@ public class ClientController {
 	@GetMapping("/reports")
 	public String goReports(Model model, Principal principal) {
 		
-		
-		
-
 		Cuenta cuenta =uS.findByUname(principal.getName()).get().getClient().getCuenta();
 		List<String[]> data = new ArrayList<String[]>();
 
 		DateFormat dF = new SimpleDateFormat( "dd-MM-yyyy");
-		DecimalFormat dF2 = new DecimalFormat("#.####	");
+		DecimalFormat dF2 = new DecimalFormat("#.####");
 		
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(cuenta.getStart());
@@ -66,53 +86,61 @@ public class ClientController {
 		limitCal.setTime(cal.getTime());
 		limitCal.add(Calendar.MONTH, cuenta.getPayment_period());
 		
-		System.out.println("limit: " + String.valueOf(limitCal.getTime()));
+		System.out.println("limit: " +dF.format(limitCal.getTime()));
 		
-		double balance = cuenta.getMaxvalue();
+		//double balance = cuenta.getMaxvalue();
 		
 		List<Move> moves = mS.list(cuenta);
 		Calendar cal2  = Calendar.getInstance();
 		
 		float intDeudor = cuenta.getDetail().getIntDeudor() / 360;
 		double Intereces = 0;
-				
+		
+		System.out.println("interez deudor: " + String.valueOf(intDeudor));
+		
 		int  accDays = 0;
 		
-		for(Move p: moves) {
-			cal2.setTime(p.getCommit_date());
-			System.out.println("[D][" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "]["+ String.valueOf(balance)+"]["+ String.valueOf(p.getValue())+"]");
-			
-			double tmpVal = cuenta.getMaxvalue() - balance;
-
-			if(limitCal.getTime().compareTo(p.getCommit_date()) < 0) {
-				System.out.println("jumped");
+		double deudaAcumulada = 0;
 		
+		int NPay = 1;
+		
+		for(Move p: moves) {
+			
+			cal2.setTime(p.getCommit_date());
+			System.out.println("\u001B[0m" + "[D][" 
+					+ dF.format(cal.getTime()) + 								";"
+					+ dF.format(cal2.getTime()) +								"]["
+					+ String.valueOf(deudaAcumulada)+					"]["
+					+ String.valueOf(p.getValue())+							"]" + "\u001B[0m");
+						
+			while(limitCal.getTime().compareTo(p.getCommit_date()) < 0) {		
 				int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - limitCal.get(Calendar.YEAR)*360 - limitCal.get(Calendar.DAY_OF_YEAR));
 				
-				System.out.println("[J][" + String.valueOf(cal.getTime()) + ";" + String.valueOf(limitCal.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+				System.out.println("[J][" + dF.format(cal.getTime()) + ";" + dF.format(limitCal.getTime()) + "][" + String.valueOf(DayDiff) +"][" + String.valueOf(deudaAcumulada)+ "]");
 				
-				Intereces += tmpVal * intDeudor *  DayDiff;
-				balance += p.getValue();
+				Intereces += deudaAcumulada * intDeudor *  DayDiff;
 				
 				cal.setTime(limitCal.getTime());
 				
 				String[] dat = {
-						dF.format(limitCal.getTime()) ,  dF2.format(Intereces), String.valueOf(accDays + DayDiff)
+						dF.format(limitCal.getTime()) ,  dF2.format(Intereces), String.valueOf(accDays + DayDiff), String.valueOf(cuenta.getPagados().contains(NPay))
 				};
+				
+				NPay++;
+				
 				data.add(dat);
 				accDays = 0;
 				limitCal.add(Calendar.MONTH, cuenta.getPayment_period());
-				Intereces = 0;
-				
+				Intereces = 0;	
 			}
 				
 			int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - cal2.get(Calendar.YEAR)*360 - cal2.get(Calendar.DAY_OF_YEAR));
 			
-			System.out.println("[R][" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+			System.out.println("[R][" + dF.format(cal.getTime()) + ";" + dF.format(cal2.getTime()) + "][" + String.valueOf(DayDiff) + "]["+ String.valueOf(deudaAcumulada)+ "]");
 	
-			Intereces += tmpVal * intDeudor *  DayDiff;
+			Intereces += deudaAcumulada * intDeudor *  DayDiff;
 			
-			balance += p.getValue();
+			deudaAcumulada += -p.getValue();
 	
 			cal.setTime(cal2.getTime());
 			
@@ -122,21 +150,23 @@ public class ClientController {
 		//lastmove
 		
 		cal2.setTime(new Date());
-		System.out.println("[" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "]["+ String.valueOf(balance)+"][end]");
-		double tmpVal = cuenta.getMaxvalue() - balance;
+		System.out.println("[" + dF.format(cal.getTime()) + ";" + dF.format(cal2.getTime()) + "]["+ String.valueOf(deudaAcumulada)+"][end]");
+		//double tmpVal = cuenta.getMaxvalue() - balance;
 				
 		while(true) {
 			if(limitCal.compareTo(cal2) < 0) {
 				int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - limitCal.get(Calendar.YEAR)*360 - limitCal.get(Calendar.DAY_OF_YEAR));
 				
-				System.out.println("[" + String.valueOf(cal.getTime()) + ";" + String.valueOf(limitCal.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+				System.out.println("[" + dF.format(cal.getTime()) + ";" +dF.format(limitCal.getTime()) + "][" + String.valueOf(DayDiff) + String.valueOf(deudaAcumulada)+ "]");
 		
-				Intereces += tmpVal * intDeudor *  DayDiff;
+				Intereces += deudaAcumulada * intDeudor *  DayDiff;
 				
 				cal.setTime(limitCal.getTime());
 				String[] dat = {
-						dF.format(limitCal.getTime()), dF2.format(Intereces), String.valueOf(DayDiff)
+						dF.format(limitCal.getTime()), dF2.format(Intereces), String.valueOf(DayDiff), String.valueOf(cuenta.getPagados().contains(NPay))
 				};
+				NPay++;
+				
 				data.add(dat);
 				
 				limitCal.add(Calendar.MONTH, cuenta.getPayment_period());
@@ -144,9 +174,9 @@ public class ClientController {
 			}else {
 				int DayDiff = -(cal.get(Calendar.YEAR)*360 + cal.get(Calendar.DAY_OF_YEAR) - cal2.get(Calendar.YEAR)*360 - cal2.get(Calendar.DAY_OF_YEAR));
 				
-				System.out.println("[" + String.valueOf(cal.getTime()) + ";" + String.valueOf(cal2.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(intDeudor)+ "][" + String.valueOf(tmpVal)+ "]");
+				System.out.println("[" + dF.format(cal.getTime()) + ";" + dF.format(cal2.getTime()) + "][" + String.valueOf(DayDiff) + "][" + String.valueOf(deudaAcumulada)+ "]");
 		
-				Intereces += tmpVal * intDeudor *  DayDiff;				
+				Intereces += deudaAcumulada * intDeudor *  DayDiff;				
 				break;
 			}			
 		}
@@ -154,6 +184,7 @@ public class ClientController {
 		data.forEach(p->{
 			System.out.println(p[0] + ": " + p[1]);
 		});
+		
 		
 		model.addAttribute("listPayments", data);
 		model.addAttribute("today", dF.format(new Date()));

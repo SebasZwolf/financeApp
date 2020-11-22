@@ -12,4 +12,6 @@ public interface ICuentaService {
 	
 	int insert(Cuenta user);
 	int delete(int id);
+	
+	void setPaid(Cuenta cuenta, int periodo);
 }

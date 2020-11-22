@@ -23,26 +23,12 @@ public class DetalleCuenta {
 	
 	@Column(name="interez_deudor", precision = 5, scale = 4)
 	private float intDeudor;
-	@Column(name="interez_excedido", precision = 5, scale = 4)
-	private float intExcedente;
 	
-	public float getComMantenimiento() {
-		return comMantenimiento;
-	}
-	public void setComMantenimiento(float comMantenimiento) {
-		this.comMantenimiento = comMantenimiento;
-	}
 	public float getIntDeudor() {
 		return intDeudor;
 	}
 	public void setIntDeudor(float intDeudor) {
 		this.intDeudor = intDeudor;
-	}
-	public float getIntExcedente() {
-		return intExcedente;
-	}
-	public void setIntExcedente(float intExcedente) {
-		this.intExcedente = intExcedente;
 	}
 	public int getId() {
 		return Id;

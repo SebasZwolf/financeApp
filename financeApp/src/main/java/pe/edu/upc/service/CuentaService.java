@@ -41,4 +41,9 @@ public class CuentaService implements ICuentaService {
 		return cR.findById(id);
 	}
 
+	@Override
+	public void setPaid(Cuenta cuenta, int periodo) {
+		cR.insertPaidPeriod(cuenta.getId(), periodo);
+	}
+
 }

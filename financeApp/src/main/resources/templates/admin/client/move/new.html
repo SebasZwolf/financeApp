@@ -56,42 +56,55 @@
 	            <div class="card-block" style="padding: 24px;">
 	            <form th:action="@{'/admin/cuenta/'+${account_id}+'/new'}" th:object ="${move}"
 					method="post" enctype="multipart/form-data" id="registerform">
-		            <div class="col-sm-6">
-		            	<label for="value">Value: </label>
-						<input type="number" step="0.01"
-							name="value" id="value" th:field="*{value}" class="form-control" value= "0" autofocus required /> 
-						<small class="form-text text-danger"
-							th:if="${#fields.hasErrors('value')}" th:errors="*{value}"></small>
-		            	
-		            	<div style="display:flex">
-			            	<input type="checkbox" name="positive" style="margin: 20px 20px">
-			            	<label for="positive">Marcar si se esta reponiendo dinero!</label>
-		            	</div>
-		            	
-		            	<label
-							for="commit_date">Commit Date: </label>	
-						<input type="date"
-							name="commit_date" th:field="*{commit_date}" class="form-control"
-							autofocus readonly/>
+		            <div class="row">
+			            <div class="col-sm-6">
+			            	<label for="Valor">Value: </label>
+							<input type="number" step="0.01"
+								name="value" id="value" th:field="*{value}" class="form-control" value= "0" autofocus required min=".1"/> 
+							<small class="form-text text-danger"
+								th:if="${#fields.hasErrors('value')}" th:errors="*{value}"></small>
+			            	<small th:if="${error}" th:text="${error}" class="form-text text-danger"></small>
+			            	<small th:if="${message}" th:text="${message}" class="form-text text-info"></small>
+			            	<div style="display:flex">
+				            	<input type="checkbox" name="positive" style="margin: 20px 20px">
+				            	<label for="positive">Marcar si se esta reponiendo dinero!</label>
+			            	</div>
+			            	
+			            	<label
+								for="commit_date">Commit Date: </label>	
+							<input type="date"
+								name="commit_date" th:field="*{commit_date}" class="form-control"
+								autofocus readonly/>
+			            </div>
+						<div class="col-sm-6">
+						<fieldset class="border p-2">
+							<legend class="w-auto" style="font-size: larger">
+								Estado de credito
+							</legend>
+							
+							<div
+								style="border-style: solid; border-color: #444; height: 1rem; border-radius: .5rem; margin-bottom: 1rem; background-color: #dddddd; border-width: 2px; overflow: hidden;">
+								<div id="innerbar"
+									style="height: 100%; background-color: #44ff44; border-radius: .5rem;">
+								</div>
+							</div>
+							<h5>
+								<script type="text/javascript">
+									/*<![CDATA[*/
+									const balance = [[${cuenta.balance}]];
+									const max = [[${cuenta.maxvalue}]];
+									/*]]>*/
+									
+									document.getElementById("innerbar").style.width = (100 * balance / max).toString() + '%'
+									var me = document.currentScript;
+									me.parentElement.innerHTML = balance.toString() + " / " + max.toString();
+								</script>	
+							</h5>
+						</fieldset>
+						</div>
 		            </div>
 				</form>
-	            </div>
-	            
-	            <script type="text/javascript">
-	            	var tagValue = document.getElementById("value");
-	            	
-					function validateVal(){
-						tagValue.setCustomValidity('')
-						
-						if( Math.abs(parseInt(tagValue.value)) < 1){										
-							tagValue.setCustomValidity("El valor absoluto debe ser mayor o igual a 1");
-						}
-					}
-					
-					tagValue.onchange = validateVal;
-					validateVal();
-	            </script>
-	            
+	            </div>	            
                 <div class="card-footer">
     				<div style="width:100%; text-align: right">
     					<button type="submit" class="btn btn-success" form = "registerform">

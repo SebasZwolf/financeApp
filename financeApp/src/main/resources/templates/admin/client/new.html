@@ -90,27 +90,13 @@
 						<div class="col-sm-12">
 							<fieldset class="border p-2" th:object="${cliente.cuenta.detail}">
 								<legend class="w-auto">Detalle de cuenta</legend>
-																
-								<label for="username">Comision por Mantenimiento: </label> 
-								<input type="number" step="0.01"
-									name="comMant" id="comMant" th:field="*{comMantenimiento}"
-									class="form-control" autofocus required/>
-								<small class="form-text text-danger"
-									th:if="${#fields.hasErrors('comMantenimiento')}" th:errors="*{comMantenimiento}"></small>
-									
+																	
 								<label for="username">Interez por Deuda(TNA%): </label> 
 								<input type="number" step="0.01"
 									name="intDeudor" id="intDeudor" th:field="*{intDeudor}"
 									class="form-control" autofocus required/>
 								<small class="form-text text-danger"
 									th:if="${#fields.hasErrors('intDeudor')}" th:errors="*{intDeudor}"></small>
-								
-								<label for="username">Interez por Excedido(TNA%): </label> 
-								<input type="number" step="0.01"
-									name="intExcedente" id="intExcedente" th:field="*{intExcedente}"
-									class="form-control" autofocus required/>
-								<small class="form-text text-danger"
-									th:if="${#fields.hasErrors('intExcedente')}" th:errors="*{intExcedente}"></small>
 							</fieldset>
 						</div>
 						
